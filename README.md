@@ -55,6 +55,4 @@ Code for sampling can be found at: https://colab.research.google.com/drive/1-EpK
 
 #  References
 This project builds upon prior work in modeling stroke outcomes as a function of treatment timing:
-Holodinsky, J. K., Williamson, T. S., Demchuk, A. M., Zhao, H., Zhu, L., Francis, M. J., ... & Kamal, N. (2018). Modeling
-stroke patient outcomes based on time to endovascular treatment and other variables: the SPOT score. Stroke, 49(10), 2637–
-2644. https://doi.org/10.1161/STROKEAHA.118.022792
+Holodinsky, J. K., Williamson, T. S., Demchuk, A. M., Zhao, H., Zhu, L., Francis, M. J., Goyal, M., Hill, M. D., & Kamal, N. (2018). Modeling Stroke Patient Transport for All Patients With Suspected Large-Vessel Occlusion. JAMA neurology, 75(12), 1477–1486. https://doi.org/10.1001/jamaneurol.2018.2424
