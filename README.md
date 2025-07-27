@@ -43,7 +43,7 @@ real road networks. The Julia code queries a **locally hosted ORS server** to co
 
 To run ORS locally, follow the instructions at https://giscience.github.io/openrouteservice/run-instance/
 
-# Patient Sampling Methodology
+## Patient Sampling Methodology
 
 Patient locations were sampled using high-resolution population density data from [Meta/CIESIN]
 (https://data.humdata.org/dataset/united-states-high-resolution-population-density-maps-demographic-estimates) 
@@ -53,6 +53,6 @@ filtered to fall on land, and exported to CSV for simulation input.
 
 Code for sampling can be found at: https://colab.research.google.com/drive/1-EpK2cS_KADK8EofqnmQmmLS8yvy4fwK?usp=sharing
 
-#  References
+##  References
 This project builds upon prior work in modeling stroke outcomes as a function of treatment timing:
 Holodinsky, J. K., Williamson, T. S., Demchuk, A. M., Zhao, H., Zhu, L., Francis, M. J., Goyal, M., Hill, M. D., & Kamal, N. (2018). Modeling Stroke Patient Transport for All Patients With Suspected Large-Vessel Occlusion. JAMA neurology, 75(12), 1477–1486. https://doi.org/10.1001/jamaneurol.2018.2424
