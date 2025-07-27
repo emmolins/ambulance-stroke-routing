@@ -1,0 +1,27 @@
+  ├─ Time since onset ≤ 168.97?
+  │ ├─ CSC Reachable ≤ 0.5?
+  │ │ ├─ Time since onset ≤ 129.02?
+  │ │ │ ├─ Diff PSC-Clinic ≤ 49.36?
+  │ │ │ │ └─ Decision: Route_Clinic
+  │ │ │ │ └─ Decision: Route_PSC
+  │ │ │ └─ Decision: Route_Clinic
+  │ │ ├─ Diff CSC-PSC ≤ 8.23?
+  │ │ │ ├─ Time to PSC ≤ 66.13?
+  │ │ │ │ └─ Decision: Route_CSC
+  │ │ │ │ └─ Decision: Route_CSC
+  │ │ │ ├─ Time since onset ≤ 137.54?
+  │ │ │ │ └─ Decision: Route_CSC
+  │ │ │ │ └─ Decision: Route_CSC
+  │ ├─ Time since onset ≤ 194.73?
+  │ │ ├─ Time to CSC ≤ 29.59?
+  │ │ │ ├─ Diff CSC-PSC ≤ 0.77?
+  │ │ │ │ └─ Decision: Route_Clinic
+  │ │ │ │ └─ Decision: Route_CSC
+  │ │ │ ├─ Time to PSC ≤ 27.48?
+  │ │ │ │ └─ Decision: Route_PSC
+  │ │ │ │ └─ Decision: Route_Clinic
+  │ │ ├─ Ratio CSC/PSC ≤ 2.41?
+  │ │ │ └─ Decision: Route_Clinic
+  │ │ │ ├─ Time since onset ≤ 208.07?
+  │ │ │ │ └─ Decision: Route_PSC
+  │ │ │ │ └─ Decision: Route_Clinic

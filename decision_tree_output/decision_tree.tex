@@ -1,0 +1,95 @@
+\documentclass[tikz]{standalone}
+\usepackage{fontspec}
+\setmainfont{Latin Modern Math}
+\usetikzlibrary{arrows}
+\usetikzlibrary{graphs}
+\usetikzlibrary{graphdrawing}
+
+% from: https://tex.stackexchange.com/questions/453132/fresh-install-of-tl2018-no-tikz-graph-drawing-libraries-found
+\usepackage{luacode}
+\begin{luacode*}
+	function pgf_lookup_and_require(name)
+	local sep = package.config:sub(1,1)
+	local function lookup(name)
+	local sub = name:gsub('%.',sep)  
+	if kpse.find_file(sub, 'lua') then
+	require(name)
+	elseif kpse.find_file(sub, 'clua') then
+	collectgarbage('stop') 
+	require(name)
+	collectgarbage('restart')
+	else
+	return false
+	end
+	return true
+	end
+	return
+	lookup('pgf.gd.' .. name .. '.library') or
+	lookup('pgf.gd.' .. name) or
+	lookup(name .. '.library') or
+	lookup(name) 
+	end
+\end{luacode*}
+
+\usegdlibrary{layered}
+\begin{document}
+\begin{tikzpicture}[]
+\graph [layered layout, , ] {
+1/"Time since onset ≤ 168.96737245148321" [],
+2/"CSC Reachable ≤ 0.5" [],
+3/"Time since onset ≤ 129.0192022790523" [],
+4/"Diff PSC-Clinic ≤ 49.358333333333334" [],
+5/"Route Clinic" [],
+6/"Route PSC" [],
+7/"Route Clinic" [],
+8/"Diff CSC-PSC ≤ 8.231666666666664" [],
+9/"Time to PSC ≤ 66.12916666666666" [],
+10/"Route CSC" [],
+11/"Route CSC" [],
+12/"Time since onset ≤ 137.53620065715256" [],
+13/"Route CSC" [],
+14/"Route CSC" [],
+15/"Time since onset ≤ 194.72502795359102" [],
+16/"Time to CSC ≤ 29.58833333333333" [],
+17/"Diff CSC-PSC ≤ 0.7733333333333334" [],
+18/"Route Clinic" [],
+19/"Route CSC" [],
+20/"Time to PSC ≤ 27.476666666666667" [],
+21/"Route PSC" [],
+22/"Route Clinic" [],
+23/"Ratio CSC/PSC ≤ 2.405271775521734" [],
+24/"Route Clinic" [],
+25/"Time since onset ≤ 208.07417611389874" [],
+26/"Route PSC" [],
+27/"Route Clinic" [],
+;
+1 -- [,] 2;
+1 -- [,] 15;
+2 -- [,] 3;
+2 -- [,] 8;
+3 -- [,] 4;
+3 -- [,] 7;
+4 -- [,] 5;
+4 -- [,] 6;
+8 -- [,] 9;
+8 -- [,] 12;
+9 -- [,] 10;
+9 -- [,] 11;
+12 -- [,] 13;
+12 -- [,] 14;
+15 -- [,] 16;
+15 -- [,] 23;
+16 -- [,] 17;
+16 -- [,] 20;
+17 -- [,] 18;
+17 -- [,] 19;
+20 -- [,] 21;
+20 -- [,] 22;
+23 -- [,] 24;
+23 -- [,] 25;
+25 -- [,] 26;
+25 -- [,] 27;
+};
+
+\end{tikzpicture}
+\end{document}

@@ -1,0 +1,12 @@
+Metric,Value
+Total Samples,1000.0
+Failed Attempts,0.0
+Route to CSC,576.0
+Route to PSC,68.0
+Route to Clinic,356.0
+Avg Time to CSC,43.11
+Avg Time to PSC,40.04
+Avg Time to Clinic,14.28
+Avg Onset Time,131.72
+Decision Matches Fastest,358.0
+Decision Different from Fastest,642.0
