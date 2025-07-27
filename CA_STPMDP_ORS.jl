@@ -154,7 +154,6 @@ end
     # Pull from CSV file
     locations::Vector{Location} = csv_to_locations(hospital_info_file)
     γ = 1.0  # Discount factor 
-    #API_KEY = ""  
 
     transfer_times_dict = Dict()  # nested dictionary, key/values are like    start_loc_name : {end_loc_name : transfer time from start --> end}
 
