@@ -1,7 +1,7 @@
 # Ambulance Routing for Stroke Triage
 
-This project simulates and analyzes intelligent ambulance routing strategies to optimize stroke patient outcomes. 
-Two geographic regions are analyzed: the San Francisco Bay Area and Rhode Island. For both regions, the status quo 
+This project simulates and analyzes intelligent ambulance routing strategies to optimize stroke patient outcomes. Two
+geographic regions are analyzed: the San Francisco Bay Area and Rhode Island. For both regions, the status quo 
 routing policy is compared with an MDP-based policy that incorporates treatment times, patient state, and geographic 
 location. Visualizations and statistical analyses evaluate the outcome and travel-time tradeoffs of each strategy.
 
@@ -35,6 +35,13 @@ All code is written in Julia and organized by region (CA, RI) and function (mode
 - Comparative analysis of travel time and clinical outcome
 - Interpretable decision tree approximations of routing logic
 - Visual heatmaps of regional outcome improvements
+
+## OpenRouteService (ORS) Setup
+
+This project uses [OpenRouteService (ORS)](https://openrouteservice.org/) to estimate travel times between locations using
+real road networks. The Julia code queries a **locally hosted ORS server** to compute realistic ambulance routing durations.
+
+To run ORS locally, follow the instructions at https://giscience.github.io/openrouteservice/run-instance/
 
 # Patient Sampling Methodology
 
