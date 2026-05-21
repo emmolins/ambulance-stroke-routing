@@ -104,17 +104,14 @@ regenerated = pd.read_csv("../sampled_points/RI_points_regenerated.csv")
 print(f"Canonical: {len(canonical)} points; Regenerated: {len(regenerated)} points")
 ```
 
-## Differences from the original Colab notebooks
+## Reproducibility notes
 
-Same updates applied to both notebooks:
+- **Random seeds.** Both notebooks call `np.random.seed(42)` and `random.seed(42)` in the parameters cell so re-runs produce identical samples.
+- **Duplicate handling.** Because the population raster has discrete cells, the weighted sample can collapse to identical lat/lon pairs (about 1% of draws). The notebooks drop duplicates by default (`DROP_DUPLICATES = True`); set this to `False` to keep them.
 
-1. **Paths** — `/content/...` (Colab-specific) replaced with relative paths under `data/`.
-2. **Random seeds** — `np.random.seed(42)` and `random.seed(42)` set explicitly so the sampling is reproducible.
-3. **Duplicate handling** — the original notebooks reported duplicate points but never dropped them (~1% of samples were duplicates). The updated notebooks drop them by default with `DROP_DUPLICATES = True`. Set this to `False` in the parameters cell to reproduce the original behavior exactly.
-4. **API updates:**
-   - `gpd.sjoin(..., op="intersects")` → `predicate="intersects"` (geopandas 0.14+).
-   - `shape.unary_union` → `shape.union_all()` (shapely 2.x, used in the CA notebook's grid step).
-5. **Known divergence (CA notebook):** the canonical `CA_points.csv` has columns `featurecla`, `scalerank`, `min_zoom` that come from a Natural Earth land polygon shapefile — not the Berkeley ZIP shapefile used here. The original final land-filter step appears to have used a different shapefile than the notebook documents. For now the CA notebook faithfully reproduces the **Colab logic** rather than reverse-engineering the final-step divergence. If you find or recreate the Natural Earth filter, update Step 4 accordingly and note it here. The RI notebook does not have this issue — its census-tract columns line up cleanly with the canonical `RI_points.csv` schema.
+## Known limitation: CA land-filter divergence
+
+The canonical `CA_points.csv` carries columns (`featurecla`, `scalerank`, `min_zoom`) that come from a Natural Earth land polygon shapefile, not the Berkeley ZIP shapefile shown in `filter_points_CA.ipynb`. The notebook faithfully documents the sampling and ZIP-based filter step, so any output you regenerate from it will have a different schema than the canonical CSV. If you regenerate `CA_points.csv` with the Natural Earth filter and update Step 4 of the notebook accordingly, please remove this section. The RI notebook does not have this issue — its census-tract columns line up cleanly with the canonical `RI_points.csv` schema.
 
 ## Why this folder exists separately from the Julia code
 
