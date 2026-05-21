@@ -1,0 +1,18 @@
+# OS
+.DS_Store
+
+# Editor
+.vscode/*.code-workspace
+
+# Julia
+*.jl.cov
+*.jl.*.cov
+*.jl.mem
+deps/deps.jl
+
+# GMT plotting cache (regenerated on each run)
+gmt.history
+
+# Logs / temp artifacts
+*.log
+.aux

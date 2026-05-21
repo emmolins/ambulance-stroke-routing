@@ -1,0 +1,12 @@
+{
+  "julia.environmentPath": "${workspaceFolder}",
+  "julia.useRevise": true,
+  "julia.NumThreads": "auto",
+  "julia.format.indent": 4,
+  "files.exclude": {
+    "**/.DS_Store": true
+  },
+  "files.associations": {
+    "*.jl": "julia"
+  }
+}
