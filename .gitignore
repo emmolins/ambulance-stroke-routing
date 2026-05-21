@@ -16,3 +16,19 @@ gmt.history
 # Logs / temp artifacts
 *.log
 .aux
+
+# Python data-prep venv
+data_prep/.venv/
+data_prep/__pycache__/
+data_prep/.ipynb_checkpoints/
+
+# Large raster / shapefile inputs (download separately; see data_prep/README.md)
+data_prep/data/*
+!data_prep/data/.gitkeep
+
+# Regenerated outputs from the notebooks (canonical CA_points.csv / RI_points.csv kept;
+# *_raw and *_regenerated are not, since they're per-run reproductions of the methodology)
+sampled_points/CA_points_raw.csv
+sampled_points/CA_points_regenerated.csv
+sampled_points/RI_points_raw.csv
+sampled_points/RI_points_regenerated.csv
