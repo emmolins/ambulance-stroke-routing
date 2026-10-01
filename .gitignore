@@ -32,3 +32,23 @@ sampled_points/CA_points_raw.csv
 sampled_points/CA_points_regenerated.csv
 sampled_points/RI_points_raw.csv
 sampled_points/RI_points_regenerated.csv
+
+# Generated simulation outputs (reproducible from pinned Manifest.toml + sources).
+# Committing them would inflate the repo and obscure code review. Final manuscript-
+# ready CSVs/figures should be linked from a release or supplement, not the repo.
+simulation_results/*
+!simulation_results/.gitkeep
+decision_tree_output/*
+!decision_tree_output/.gitkeep
+
+# Per-cell grid CSVs from grid_generator.jl. Tens of thousands of small files;
+# regenerate via scripts/grid_generator.jl.
+sampled_points/grid_plot_csvs_*/
+
+# Equity overlay artifacts (regenerable via data_prep/build_*.py + scripts/grid_*).
+# Keep bay_area_grid_cells.csv (tiny, pins the scope decision).
+sampled_points/bay_area_tract_demographics.csv
+sampled_points/CA_grid_patients.csv
+sampled_points/CA_grid_cell_means.csv
+sampled_points/CA_grid_patients_with_demographics.csv
+data_prep/data/bay_area_tracts.geojson

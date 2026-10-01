@@ -23,7 +23,6 @@ deps = [
     "CSV",
     "DataFrames",
     "DecisionTree",
-    "DiscreteValueIteration",
     "Distributions",
     "GMT",
     "Graphs",
@@ -38,7 +37,6 @@ deps = [
     "ProgressBars",
     "ProgressMeter",
     "StatsBase",
-    "StatsPlots",
     "TikzGraphs",
     "TikzPictures",
 ]

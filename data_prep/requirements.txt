@@ -18,3 +18,7 @@ fiona>=1.9
 pandas>=2,<3
 numpy>=1.24,<3
 matplotlib>=3.7
+
+# Equity overlay (ACS + RUCA)
+requests>=2.31           # ACS API + USDA file downloads
+openpyxl>=3.1            # for reading USDA RUCA xlsx

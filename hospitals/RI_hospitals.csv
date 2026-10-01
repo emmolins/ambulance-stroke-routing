@@ -1,19 +1,11 @@
-Hospital,City,Lat,Lon,Performance Metric,Type
-RhodeIslandHospital,Providence,41.8115847,-71.49664063,60,CSC
-HasbroChildrensHospital,Providence,41.8113031,-71.40846695,60,PSC
-MiriamHospital,Providence,41.85211847,-71.39804194,60,PSC
-RogerWilliamsHospital,Providence,41.83517677,-71.43538007,60,PSC
-StJosephsHospital,Providence,41.85662449,-71.46019132,60,PSC
-SouthCountyHospital,South Kingstown,41.43163462,-71.49664063,60,PSC
-KentCountyHospital,Warwick,41.70552167,-71.47788389,60,PSC
-LandmarkMedicalCenter,Woonsocket,42.00499487,-71.49556752,60,PSC
-WesterlyHospital,Westerly,41.36254752,-71.8256293,60,PSC
-BradleyHospital,East Providence,41.79218178,-71.36715324,60,CLINIC
-ButlerHospital,Providence,41.84278627,-71.38080986,60,CLINIC
-EleanorSlaterHospitalCranston,Cranston,41.74509487,-71.4632541,60,CLINIC
-EleanorSlaterHospitalZambaronoUnitBurrillville,Burrillville,41.99724079,-71.76254638,60,CLINIC
-NewportHospital,Newport,41.49691525,-71.30621855,60,CLINIC
-OurLadyOfFatimaHospital,North Providence,41.8555964,-71.45950482,60,CLINIC
-ProvidenceVAHospital,Providence,41.83228582,-71.43359663,60,CLINIC
-RehabilitationHospitalOfRhodeIsland,North Smithfield,41.98168836,-71.51287044,60,CLINIC
-WomenAndInfantsHospitalOfRhodeIsland,Providence,41.81057269,-71.40688006,60,CLINIC
+Hospital,City,Lat,Lon,Performance Metric,Type,County,DisplayName
+RhodeIslandHospital,Providence,41.8105653,-71.408253,60,CSC,Providence,Rhode Island Hospital
+KentHospital,Warwick,41.7059855,-71.4772441,60,PSC,Kent,Kent Hospital
+LandmarkMedicalCenter,Woonsocket,42.003766,-71.4954862,60,PSC,Providence,Landmark Medical Center
+NewportHospital,Newport,41.4968721,-71.3059958,60,PSC,Newport,Newport Hospital
+OurLadyOfFatimaHospital,North Providence,41.8553944,-71.4604949,60,PSC,Providence,Our Lady of Fatima Hospital
+RogerWilliamsMedicalCenter,Providence,41.8345959,-71.4351035,60,PSC,Providence,Roger Williams Medical Center
+SouthCountyHospital,Wakefield,41.4313286,-71.4966542,60,PSC,Washington,South County Hospital
+TheMiriamHospital,Providence,41.8523656,-71.3982729,60,PSC,Providence,The Miriam Hospital
+WesterlyHospital,Westerly,41.3621153,-71.8248372,60,CLINIC,Washington,Westerly Hospital
+WomenInfantsHospital,Providence,41.8109023,-71.4133702,60,CLINIC,Providence,Women & Infants Hospital

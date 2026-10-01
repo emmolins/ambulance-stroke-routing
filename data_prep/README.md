@@ -6,7 +6,7 @@ This folder documents how the patient location datasets were generated for both 
 
 | File | What it is |
 |---|---|
-| `filter_points_CA.ipynb` | Bay Area sampling. Pop-weighted points → land filter against Berkeley ZIP shapefile. |
+| `filter_points_CA.ipynb` | Bay Area sampling. Pop-weighted points → land filter against Natural Earth land polygons (Berkeley ZIP shapefile is used to bound the raster mask). |
 | `filter_points_RI.ipynb` | Rhode Island sampling. Pop-weighted points → land filter against TIGER/Line census tracts. |
 | `requirements.txt` | Pinned Python deps shared by both notebooks. |
 | `data/` | Where you place the downloaded raster + shapefile inputs (not committed; too large). |
@@ -15,10 +15,10 @@ This folder documents how the patient location datasets were generated for both 
 
 The canonical `CA_points.csv` and `RI_points.csv` carry different per-region columns:
 
-- **CA:** Natural Earth land polygon columns (`featurecla`, `scalerank`, `min_zoom`)
-- **RI:** US Census Bureau TIGER/Line census-tract columns (`STATEFP`, `COUNTYFP`, `TRACTCE`, `GEOID`, ...)
+- **CA:** Natural Earth land polygon columns (`featurecla`, `scalerank`, `min_zoom`) — the final land filter uses a Natural Earth global land shapefile. The Berkeley ZIP shapefile is used earlier in the pipeline (Step 1) to mask the population raster to the Bay Area before sampling.
+- **RI:** US Census Bureau TIGER/Line census-tract columns (`STATEFP`, `COUNTYFP`, `TRACTCE`, `GEOID`, ...) — the census-tract polygons act as both the region bound and the final land filter.
 
-The two notebooks preserve those choices to stay faithful to the original pipeline. The CA notebook additionally has a known divergence (it uses the Berkeley ZIP shapefile rather than Natural Earth — see the bottom of this README).
+Both notebooks now reproduce the methodology that produced the canonical CSV column schemas.
 
 ## One-time setup
 
@@ -46,11 +46,17 @@ Both files go in `data_prep/data/` (the folder is created automatically when you
 
 > Note: the original paper used Meta/CIESIN's 2019 release. Meta/CIESIN have since paused new releases — the 2019 dataset remains the most recent one for U.S. high-resolution population. If a newer release is available by the time you re-run, document the change in your manuscript's methods.
 
-**Bay Area ZIP code shapefile (for the CA notebook):**
+**Bay Area ZIP code shapefile (for the CA notebook — region mask in Step 1):**
 
 1. Visit https://geodata.lib.berkeley.edu/catalog/ark28722-s7888q
 2. Download the full shapefile bundle (`.shp`, `.shx`, `.dbf`, `.prj`, etc. — keep them together).
 3. Place them in `data_prep/data/` so the index lives at `data_prep/data/bayarea_zipcodes.shp`.
+
+**Natural Earth 10m land polygons (for the CA notebook — final land filter in Step 4):**
+
+1. Visit https://www.naturalearthdata.com/downloads/10m-physical-vectors/
+2. Find **"Land"** and click **"Download land"** to get `ne_10m_land.zip`.
+3. Unzip into a subfolder so the file lives at `data_prep/data/ne_10m_land/ne_10m_land.shp` (keep all the `ne_10m_land.*` companion files together in that folder).
 
 **Rhode Island census tract shapefile (for the RI notebook):**
 
@@ -62,16 +68,12 @@ After setup, your `data/` should look like:
 
 ```
 data_prep/data/
-├── bayarea_zipcodes.shp
-├── bayarea_zipcodes.shx
-├── bayarea_zipcodes.dbf
-├── bayarea_zipcodes.prj
-├── tl_2020_44_tract.shp
-├── tl_2020_44_tract.shx
-├── tl_2020_44_tract.dbf
-├── tl_2020_44_tract.prj
+├── bayarea_zipcodes.shp (+ .shx, .dbf, .prj, ...)
+├── tl_2020_44_tract.shp (+ .shx, .dbf, .prj, ...)
+├── ne_10m_land/
+│   └── ne_10m_land.shp (+ .shx, .dbf, .prj, ...)
 ├── population_usa_2019-07-01.vrt
-└── (population_*.tif tiles)
+└── (population_usa*_*.tif tiles — at minimum 28_-130, 38_-130, 38_-80 for the regions used)
 ```
 
 ### 3. Launch Jupyter
@@ -107,11 +109,7 @@ print(f"Canonical: {len(canonical)} points; Regenerated: {len(regenerated)} poin
 ## Reproducibility notes
 
 - **Random seeds.** Both notebooks call `np.random.seed(42)` and `random.seed(42)` in the parameters cell so re-runs produce identical samples.
-- **Duplicate handling.** Because the population raster has discrete cells, the weighted sample can collapse to identical lat/lon pairs (about 1% of draws). The notebooks drop duplicates by default (`DROP_DUPLICATES = True`); set this to `False` to keep them.
-
-## Known limitation: CA land-filter divergence
-
-The canonical `CA_points.csv` carries columns (`featurecla`, `scalerank`, `min_zoom`) that come from a Natural Earth land polygon shapefile, not the Berkeley ZIP shapefile shown in `filter_points_CA.ipynb`. The notebook faithfully documents the sampling and ZIP-based filter step, so any output you regenerate from it will have a different schema than the canonical CSV. If you regenerate `CA_points.csv` with the Natural Earth filter and update Step 4 of the notebook accordingly, please remove this section. The RI notebook does not have this issue — its census-tract columns line up cleanly with the canonical `RI_points.csv` schema.
+- **Duplicate handling.** Because the population raster is gridded (~30 m cells) and `np.random.choice` samples with replacement, ~1% of draws collide on the same grid cell and produce identical lat/lon coordinates. The notebooks **keep these duplicates by default** (`DROP_DUPLICATES = False`) — they are a legitimate outcome of population-weighted sampling with replacement, and the canonical CSVs were generated this way. Set the flag to `True` only if your downstream use specifically requires unique coordinates.
 
 ## Why this folder exists separately from the Julia code
 
