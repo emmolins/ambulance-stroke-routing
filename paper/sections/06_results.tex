@@ -1,0 +1,135 @@
+% ---- VI. Results. Budget 2.3 pages: ~900 words + Table II (main), Table III (sensitivity),
+% Table IV (tree sweep + latency), Fig. 1 (histogram or paired-difference plot), Fig. 2 (maps),
+% Fig. 3 (tree). JAMA results text is kept as the narrative frame; EVERY number is pending.
+\section{Results}
+\label{sec:results}
+
+\subsection{Primary comparison: San Francisco Bay Area}
+\jama{JAMA "Simulation Outcomes: Bay Area", structure kept; numbers were single-run and are replaced.}
+Across 10 replicates of 1,000 patients, the MDP policy raised the mean probability of a good outcome from \pending{0.xxx} under nearest-hospital routing to \pending{0.xxx} (paired difference \pending{0.0xx}, 95\% CI \pending{a--b}, $d_z$ = \pending{x.x}; Table~\ref{tab:main}). The median rose from \pending{0.xxx} to \pending{0.xxx}. \jama{Keep the "spike at the floor value" explanation if the histogram still shows it.} A spike in the outcome distribution at \pending{0.xxx} reflects patients who reached treatment outside the window in which earlier arrival adds benefit; for them routing cannot help, which bounds the achievable gain of any policy.
+
+Against the heuristics, nearest-hospital routing underperformed all alternatives. The MDP policy outperformed the nearest-stroke-centre rule by \pending{0.0xx} (95\% CI \pending{a--b}) and the nearest-EVT-centre rule by \pending{0.0xx} (95\% CI \pending{a--b}). \jama{JAMA operational-burden paragraph, numbers pending.} Where the MDP and nearest-EVT-centre policies diverged (\pending{n} of 10,000 cases), \pending{m} had identical predicted outcomes, yet the nearest-EVT-centre rule added a mean \pending{x.x} minutes of transport, and it concentrated transports on \pending{k} hospitals against \pending{j} under the MDP. The reward does not penalise travel that leaves the outcome unchanged, so it understates the operational cost of fixed bypass rules.
+
+\begin{table}[t]
+\centering
+\caption{Bay Area, 10 replicates $\times$ 1,000 patients. Probability of an excellent outcome (mRS 0--1 at 90 days), realised reward. Paired differences with 95\% CI across replicates.}
+\label{tab:main}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Policy & Mean & Median & Hospitals used \\
+\midrule
+MDP (depth 2) & \pending{} & \pending{} & \pending{} \\
+Nearest hospital & \pending{} & \pending{} & \pending{} \\
+Nearest EVT-capable centre & \pending{} & \pending{} & \pending{} \\
+Nearest stroke centre & \pending{} & \pending{} & \pending{} \\
+Decision tree (depth \pending{d}) & \pending{} & \pending{} & \pending{} \\
+\midrule
+\multicolumn{4}{@{}l}{Paired difference, mean (95\% CI), Bonferroni-adjusted $p$} \\
+MDP $-$ Nearest hospital & \multicolumn{3}{l}{\pending{}} \\
+MDP $-$ Nearest EVT-capable & \multicolumn{3}{l}{\pending{}} \\
+MDP $-$ Nearest stroke centre & \multicolumn{3}{l}{\pending{}} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Geographic and equity analysis}
+\jama{JAMA "Geographic Analysis of Outcomes": the "71\%" now comes from CA\_grid\_hotspot\_summary.csv (relative improvement per cell); the equity claim is now vs heuristics as well (Reviewer 2).}
+To locate where routing matters most, we simulated five patients in each cell of a 200$\times$200 grid over the Bay Area and mapped the mean outcome under each policy (Fig.~\ref{fig:maps}). Relative to nearest-hospital routing, the MDP improved the cell mean by a median of \pending{x}\% and by more than \pending{25}\% in \pending{n} cells, with a maximum of \pending{xx}\%; no cell worsened by more than \pending{x}. \jama{Keep the Livermore/Hayward/Fremont vs SF/Palo Alto/San Jose contrast if it survives the reruns.} The largest gains were in \pending{communities}, which lie farther from EVT-capable centres; San Francisco, Palo Alto and San Jose, with proximate EVT-capable centres, changed little. Stratified by tract income quartile and urbanicity (Table~\ref{tab:equity}), the MDP's gain over nearest-hospital routing was \pending{largest / similar} in the lowest income quartile and in rural tracts; against the nearest-EVT-centre heuristic the gain was \pending{x}, showing that \pending{the equity benefit is / is not} specific to the MDP rather than to any bypass rule.
+
+\begin{table}[t]
+\centering
+\caption{Paired difference in probability of a good outcome by stratum (mean, 95\% CI). Rural stratum is small (\pending{n} tracts).}
+\label{tab:equity}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Stratum & MDP $-$ Nearest & MDP $-$ Nearest EVT & MDP $-$ Nearest SC \\
+\midrule
+Income Q1 (lowest) & \pending{} & \pending{} & \pending{} \\
+Income Q2 & \pending{} & \pending{} & \pending{} \\
+Income Q3 & \pending{} & \pending{} & \pending{} \\
+Income Q4 & \pending{} & \pending{} & \pending{} \\
+Urban & \pending{} & \pending{} & \pending{} \\
+Rural & \pending{} & \pending{} & \pending{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.49\columnwidth]{jama_fig2a_nearest_map}\hfill
+\includegraphics[width=0.49\columnwidth]{jama_fig2b_optimal_map}\\[2pt]
+\includegraphics[width=0.7\columnwidth]{jama_fig3_difference_map}
+\caption{\pending{Regenerate from CA\_grid\_cell\_means.csv.} Mean probability of a good outcome per grid cell under nearest-hospital routing (top left) and the MDP policy (top right), and their difference (bottom). Warmer colours indicate higher values.}
+\label{fig:maps}
+\end{figure}
+
+\subsection{Sensitivity analyses}
+\new{Table~\ref{tab:sens} reports the MDP-minus-nearest difference under perturbed travel times and alternative in-hospital intervals. [Narrative to write once numbers exist. Expected: the difference is stable under $\pm 20\%$ noise and $\times 0.7$--$1.3$ bias; it grows with $T_{\text{DIDO}}$, because longer door-in-door-out penalises drip-and-ship and favours direct transport to EVT-capable centres, consistent with the registry association between DIDO and outcome~\cite{royan2026}. Under the on-site EVT definition (15 EVT-capable centres) the difference is \pending{x}.]}
+
+\begin{table}[t]
+\centering
+\caption{Sensitivity of the MDP $-$ nearest-hospital difference (mean, 95\% CI across replicates).}
+\label{tab:sens}
+\begin{tabular}{@{}llc@{}}
+\toprule
+Analysis & Setting & Difference \\
+\midrule
+Base case & & \pending{} \\
+Travel-time noise & $\sigma = 0.10$ / $0.20$ & \pending{} / \pending{} \\
+Travel-time bias & $\times 0.70$ / $0.90$ / $1.10$ / $1.30$ & \pending{} \\
+Door-in-door-out & 60 / 90 / 175 min & \pending{} \\
+EVT definition & on-site (15 centres) & \pending{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Decision-tree policy}
+\jama{JAMA "Decision Tree Performance", evaluation half; depth is now chosen by the sweep.}
+Fig.~\ref{fig:tree} shows the selected tree. On \pending{n} held-out patients it achieved a mean outcome of \pending{0.xxx} against \pending{0.xxx} for the MDP, recovering \pending{xx}\% of the MDP's gain over nearest-hospital routing with \pending{k} leaves (Table~\ref{tab:tree}). Shallower trees lose \pending{...}; deeper trees add leaves without material gain. \new{[One sentence on which splits dominate: time since onset and the EVT-centre travel-time margin.]}
+
+\begin{table}[t]
+\centering
+\caption{Decision-tree depth sweep on held-out patients, and planner latency per decision.}
+\label{tab:tree}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Depth & Leaves & Mean outcome & Gain recovered & \\
+\midrule
+1 / 2 / 3 / 4 & \pending{} & \pending{} & \pending{} & \\
+5 / 6 / 8 / 10 / $\infty$ & \pending{} & \pending{} & \pending{} & \\
+\midrule
+Planning depth & Median (ms) & p95 (ms) & p99 (ms) & \\
+1 / 2 / 3 / 4 & \pending{} & \pending{} & \pending{} & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{jama_fig4_decision_tree}
+\caption{\pending{Regenerate for the selected depth.} Decision-tree approximation of the MDP policy. Left and right branches are ``no'' and ``yes''.}
+\label{fig:tree}
+\end{figure}
+
+\subsection{Real-time feasibility}
+\new{A depth-2 decision took a median of \pending{xxx}~ms (p95 \pending{xxx}~ms) on \pending{hardware}, within any dispatch window; depth 3 and 4 cost \pending{x} and \pending{y}~s, which with the negligible outcome gain beyond depth 2 (\pending{...}) justifies the chosen depth. The decision tree needs no computation at all.}
+
+\subsection{Rhode Island}
+\jama{JAMA "Simulation Outcomes: Rhode Island"; now all comparisons, 10 replicates (Reviewer 2).}
+In Rhode Island the MDP and the state's nearest-EVT-centre protocol gave nearly identical mean outcomes (\pending{0.xxx} vs \pending{0.xxx}; difference \pending{0.00x}, 95\% CI \pending{a--b}), while the MDP routed to \pending{k} hospitals against one, and both outperformed nearest-hospital and nearest-stroke-centre routing by \pending{x} and \pending{y} (Table~\ref{tab:ri}). \new{[Interpretation: in a small state with one EVT centre the optimal policy largely coincides with the centralised protocol, and the value of the MDP is in load distribution rather than outcome.]}
+
+\begin{table}[t]
+\centering
+\caption{Rhode Island, 10 replicates $\times$ 1,000 patients.}
+\label{tab:ri}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Policy & Mean & Median & Hospitals used \\
+\midrule
+MDP (depth 2) & \pending{} & \pending{} & \pending{} \\
+Nearest hospital & \pending{} & \pending{} & \pending{} \\
+Nearest EVT-capable centre & \pending{} & \pending{} & 1 \\
+Nearest stroke centre & \pending{} & \pending{} & \pending{} \\
+\bottomrule
+\end{tabular}
+\end{table}

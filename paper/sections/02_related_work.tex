@@ -1,0 +1,17 @@
+% ---- II. Related Work. Budget 0.7 page (~500 words). Mostly NEW; JAMA had one paragraph.
+% Reviewer 1 named Ardestani-Jaafari & Kucukyazici (2022) as the closest work: must be cited
+% and positioned against. Emily turns the notes below into prose (Sun).
+\section{Related Work}
+
+\subsection{Stroke transport modelling}
+\jama{JAMA para 3 as the seed.}
+Schlemm \emph{et al.}~\cite{schlemm2017} and Al Fatah \emph{et al.}~\cite{alfatah2018} propose strategic routing models, using prehospital severity scales and agent-based simulation to weigh stroke severity against transport times, and Maas \emph{et al.}~\cite{maas2020} stress region-specific pathway design (drip-and-ship versus mothership). Holodinsky \emph{et al.}~\cite{holodinsky2018} model outcome probability as a function of onset-to-treatment time for each subtype under both pathways; their outcome functions are the reward model used here. \new{[Add: conditional-probability and decision-analytic models of bypass thresholds (e.g.\ Holodinsky 2017 \emph{Stroke}; Milne \emph{et al.} 2017); the RACECAT trial (P\'erez de la Ossa \emph{et al.} 2022, JAMA) as the randomised evidence that direct-to-EVT transport is not uniformly superior, which motivates a patient-specific policy rather than a fixed bypass rule.]}
+
+\subsection{Operations research for regional stroke networks}
+\new{[Ardestani-Jaafari and Kucukyazici~\cite{ardestani2022} formulate patient transfer protocols for a regional stroke network as an optimisation over network-level transfer rules, evaluated in Quebec. Position: they optimise the protocol (a system-level design, solved offline) while we optimise the per-patient dispatch decision (solved online, with subtype uncertainty and a transfer stage inside the MDP); the two are complementary, and their protocol class could be a comparator. Also: EMS location and dispatch MDPs (e.g.\ Maxwell \emph{et al.} 2010 ambulance redeployment; Schmid 2012 ADP for dispatch) to place the MDP approach in the OR literature; capacity-aware models (queueing at receiving centres) to acknowledge what we do not model.]}
+
+\subsection{Interpretable policies for deployment}
+\new{[Distilling a computed policy into a decision tree for human use: VIPER / policy distillation (Bastani \emph{et al.} 2018), interpretable RL surveys; clinical decision rules as trees. Position: our tree is trained on the MDP's own labels, evaluated against the MDP on held-out patients, and its depth is chosen by a sweep that trades leaves against recovered gain.]}
+
+\subsection{What this paper adds}
+\new{[One paragraph: relative to the stroke-transport models, a per-patient policy that handles subtype uncertainty and transfer inside one formulation and is evaluated with replicates and equity stratification; relative to the OR literature, an online, interpretable, latency-measured policy; relative to the clinical literature, verifiable hospital capability definitions and published in-hospital intervals.]}

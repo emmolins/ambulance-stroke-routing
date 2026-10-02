@@ -185,7 +185,7 @@ function POMDPs.actions(m::StrokeMDP, s::PatientState)
     if s.loc.type == FIELD
         for hospital in m.locations
             if hospital.type != FIELD
-                travel_time = calculate_travel_time(s.loc, hospital)
+                travel_time = cached_travel_time(m, s.loc, hospital)
                 if travel_time !== nothing
                     push!(valid_actions, "ROUTE_$(hospital.name)")
                 end
@@ -194,7 +194,7 @@ function POMDPs.actions(m::StrokeMDP, s::PatientState)
     elseif s.loc.type == NSC
         for hospital in m.locations
             if hospital.type == PSC || hospital.type == CSC
-                travel_time = calculate_travel_time(s.loc, hospital)
+                travel_time = cached_travel_time(m, s.loc, hospital)
                 if travel_time !== nothing
                     push!(valid_actions, "ROUTE_$(hospital.name)")
                 end
@@ -204,7 +204,7 @@ function POMDPs.actions(m::StrokeMDP, s::PatientState)
     elseif s.loc.type == PSC
         for hospital in m.locations
             if hospital.type == CSC
-                travel_time = calculate_travel_time(s.loc, hospital)
+                travel_time = cached_travel_time(m, s.loc, hospital)
                 if travel_time !== nothing
                     push!(valid_actions, "ROUTE_$(hospital.name)")
                 end
@@ -241,6 +241,10 @@ end
 # recorded outcome (see scripts/recompute_perturbed_rewards.jl); it does not
 # enter the planner's forward search.
 
+# ORS server. ORS_PORT lets a second container (Rhode Island on 8081) be used
+# without editing code.
+const ORS_BASE = "http://localhost:$(get(ENV, "ORS_PORT", "8080"))"
+
 # Returns car travel time in minutes between two locations using ORS
 function calculate_travel_time(loc1::Location, loc2::Location)
     # EMS catchment assumption: the initial transport from the pickup location
@@ -254,7 +258,7 @@ function calculate_travel_time(loc1::Location, loc2::Location)
         end
     end
 
-    base_url = "http://localhost:8080/ors/v2/directions/driving-car"
+    base_url = "$(ORS_BASE)/ors/v2/directions/driving-car"
     start_lat, start_lon = loc1.latlon
     end_lat, end_lon = loc2.latlon
     request_url = "$base_url?&start=$start_lon,$start_lat&end=$end_lon,$end_lat"
@@ -291,23 +295,63 @@ end
 ###### =========================================================================
 
 """
+    fetch_travel_row(m, origin) -> Dict{String, Union{Float64, Nothing}}
+
+One ORS Matrix request returning car travel time (minutes) from `origin` to
+every hospital in `m.locations`. Replaces one Directions request per pair
+(~60 round trips and full route geometry per decision) with a single call.
+Unreachable destinations come back as `nothing`. The 80 km EMS catchment
+rule for pickup (FIELD) origins is applied here, as in calculate_travel_time.
+Falls back to per-pair Directions calls if the Matrix endpoint fails.
+"""
+function fetch_travel_row(m::StrokeMDP, origin::Location)
+    hospitals = [l for l in m.locations if l.type != FIELD]
+    row = Dict{String, Union{Float64, Nothing}}()
+    body = JSON.json(Dict(
+        "locations"    => vcat([[origin.latlon[2], origin.latlon[1]]],
+                               [[h.latlon[2], h.latlon[1]] for h in hospitals]),
+        "sources"      => [0],
+        "destinations" => collect(1:length(hospitals)),
+        "metrics"      => ["duration"],
+    ))
+    durations = nothing
+    try
+        resp = HTTP.post("$(ORS_BASE)/ors/v2/matrix/driving-car",
+                         ["Content-Type" => "application/json"], body)
+        durations = JSON.parse(String(resp.body))["durations"][1]
+    catch e
+        println("Warning: ORS matrix request failed for origin $(origin.name) ($(typeof(e))); falling back to per-pair Directions calls")
+        for h in hospitals
+            row[h.name] = calculate_travel_time(origin, h)
+        end
+        return row
+    end
+    for (h, d) in zip(hospitals, durations)
+        if d === nothing || (origin.type == FIELD && haversine_distance(origin, h) > 80000)
+            row[h.name] = nothing
+        else
+            row[h.name] = d / 60
+        end
+    end
+    return row
+end
+
+"""
     cached_travel_time(m, cur_loc, target) -> Union{Float64, Nothing}
 
-Look up — and lazily populate — the per-origin travel-time cache. Caching is
-only applied for non-FIELD origins because patient pickup locations are
-single-use; hospital→hospital times are reused across many decisions.
+Travel time from `cur_loc` to `target`, served from a per-origin cache that is
+filled by one Matrix request on first use. Origins are keyed by coordinates,
+so a pickup location queried dozens of times within one forward search costs
+one request, and hospital-to-hospital times are reused across all decisions.
 """
 function cached_travel_time(m::StrokeMDP, cur_loc::Location, target::Location)
-    if cur_loc.type == FIELD
-        return calculate_travel_time(cur_loc, target)
+    target.type == FIELD && return nothing
+    cur_loc.latlon == target.latlon && return 0.0
+    key = cur_loc.latlon
+    row = get!(m.transfer_times_dict, key) do
+        fetch_travel_row(m, cur_loc)
     end
-    inner = get!(m.transfer_times_dict, cur_loc.name, Dict{String, Any}())
-    if haskey(inner, target.name)
-        return inner[target.name]
-    end
-    t = calculate_travel_time(cur_loc, target)
-    inner[target.name] = t
-    return t
+    return get(row, target.name, nothing)
 end
 
 """
@@ -364,7 +408,7 @@ function POMDPs.transition(m::StrokeMDP, s::PatientState, a::Action)
     # interval before departure; arrival itself costs nothing here, because the
     # treatment intervals (DTN / DTP) are applied in reward().
     dido = (a == STAY || cur_loc.type == FIELD) ? 0.0 : DIDO
-    travel_time = calculate_travel_time(cur_loc, dest_loc)
+    travel_time = cached_travel_time(m, cur_loc, dest_loc)
     if travel_time === nothing
         return nothing
     end

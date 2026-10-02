@@ -1,0 +1,84 @@
+% =============================================================================
+% IEEE Transactions on Automation Science and Engineering — Regular Paper
+% Working title: Real-Time Routing of Suspected Stroke Patients with an
+%                Interpretable Markov Decision Process Policy
+%
+% Page budget (10 pages incl. references; $175/page beyond 10; hard cap 12):
+%   Abstract + Note to Practitioners 0.4 | I Intro 0.9 | II Related 0.7
+%   III Problem 1.3 | IV Method 1.2 | V Setup 1.2 | VI Results 2.3
+%   VII Discussion 1.1 | VIII Conclusion 0.2 | References 0.7
+%
+% Markers:  \new{...}      text to write (not in the JAMA manuscript)
+%           \pending{...}  number or figure awaiting the reruns
+%           \jama{...}     comment: where the JAMA text came from / what changed
+% Build:    latexmk -pdf main.tex    (or: pdflatex; bibtex main; pdflatex x2)
+% Anonymous submission: compile with \anontrue below.
+% =============================================================================
+\documentclass[journal]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+\usepackage{cite}
+\graphicspath{{figures/}}
+
+% ---- drafting markers (set \draftfalse to hide the colours before submission)
+\newif\ifdraft\drafttrue
+\newif\ifanon\anonfalse
+\ifdraft
+  \newcommand{\new}[1]{\textcolor{blue}{#1}}
+  \newcommand{\pending}[1]{\textcolor{red}{[PENDING: #1]}}
+  \newcommand{\jama}[1]{\textcolor{gray}{\footnotesize[#1]}}
+\else
+  \newcommand{\new}[1]{#1}
+  \newcommand{\pending}[1]{#1}
+  \newcommand{\jama}[1]{}
+\fi
+
+\begin{document}
+
+\title{Real-Time Routing of Suspected Stroke Patients with an Interpretable Markov Decision Process Policy}
+
+\ifanon
+\author{Anonymous authors}
+\else
+\author{Emily~M.~Molins, Yasmine~Alonso, Jeremy~J.~Heit, Benjamin~Pulli, and Mykel~J.~Kochenderfer%
+\thanks{E. M. Molins is with the Department of Statistics, University of Oxford, Oxford, U.K. (e-mail: emily.molins@st-hildas.ox.ac.uk). Work begun in the Department of Management Science and Engineering, Stanford University.}%
+\thanks{Y. Alonso is with the Department of Computer Science, Stanford University, Stanford, CA, USA.}%
+\thanks{J. J. Heit and B. Pulli are with the Division of Neuroimaging and Neurointervention, Department of Radiology, Stanford University School of Medicine, Stanford, CA, USA.}%
+\thanks{M. J. Kochenderfer is with the Department of Aeronautics and Astronautics, Stanford University, Stanford, CA, USA.}}
+\fi
+
+\markboth{IEEE Transactions on Automation Science and Engineering}{Molins \MakeLowercase{\textit{et al.}}: Real-Time Routing of Suspected Stroke Patients}
+
+\maketitle
+
+\input{sections/00_abstract}
+
+\begin{IEEEkeywords}
+Markov decision processes, emergency medical services, stroke, healthcare automation, interpretable policies, decision trees, routing.
+\end{IEEEkeywords}
+
+\input{sections/01_introduction}
+\input{sections/02_related_work}
+\input{sections/03_problem_formulation}
+\input{sections/04_solution_method}
+\input{sections/05_experimental_setup}
+\input{sections/06_results}
+\input{sections/07_discussion}
+\input{sections/08_conclusion}
+
+\ifanon\else
+\section*{Acknowledgments}
+\jama{From JAMA, unchanged.}
+We thank Dr.~Mahesh V. Jayaraman for his expert guidance in understanding the medical landscape and the implementation of Rhode Island's stroke routing policy, Zara Rutherford for her contributions to a mobile application prototype for EMS use, and Dr.~Sophie Ostmeier for her guidance throughout this project.
+\fi
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\end{document}

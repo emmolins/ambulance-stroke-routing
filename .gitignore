@@ -52,3 +52,14 @@ sampled_points/CA_grid_patients.csv
 sampled_points/CA_grid_cell_means.csv
 sampled_points/CA_grid_patients_with_demographics.csv
 data_prep/data/bay_area_tracts.geojson
+
+# LaTeX build products
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.fdb_latexmk
+paper/*.fls
+paper/*.log
+paper/*.out
+paper/*.synctex.gz
+paper/build.log

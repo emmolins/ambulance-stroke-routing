@@ -49,6 +49,8 @@ using DataFrames
 include("../src/CA_STPMDP_ORS.jl")
 
 const DIR = "simulation_results"
+# Optional suffix for sensitivity variants, e.g. REALIZED_TAG=_dido60 with DIDO_MIN=60.
+const REALIZED_TAG = get(ENV, "REALIZED_TAG", "")
 
 # (action_col, reward_col, travel_time_col) tuples in the order the simulation
 # CSVs use. The `reward_col` will be REPLACED with realized values in the
@@ -153,14 +155,14 @@ if !isempty(rep_files)
     println("Processing $(length(rep_files)) per-replicate file(s) ...")
     for f in rep_files
         in_path  = joinpath(DIR, f)
-        out_path = joinpath(DIR, replace(f, "_rep" => "_realized_rep"))
+        out_path = joinpath(DIR, replace(f, "_rep" => "_realized$(REALIZED_TAG)_rep"))
         process_file(in_path, out_path, mdp)
     end
 end
 
 # Aggregated file
 agg_in  = joinpath(DIR, "CA_simulation_results.csv")
-agg_out = joinpath(DIR, "CA_simulation_results_realized.csv")
+agg_out = joinpath(DIR, "CA_simulation_results_realized$(REALIZED_TAG).csv")
 if isfile(agg_in)
     println("Processing aggregated file ...")
     process_file(agg_in, agg_out, mdp)

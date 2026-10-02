@@ -1,0 +1,23 @@
+% ---- IV. Solution Method. Budget 1.2 pages. Source: JAMA "Solution Approach" (1 para) and
+% "Decision Tree Performance" (methods half). Expanded: forward search with marginalisation
+% (NEW, from the May code change), decision-tree distillation as a first-class method (NEW).
+\section{Solution Method}
+\label{sec:method}
+
+\subsection{Online planning by forward search}
+\jama{JAMA "Solution Approach", expanded with the marginalisation step.}
+We solve the MDP online with finite-horizon forward search~\cite{kochenderfer2022}: from the current state, every admissible action is expanded, its successor state evaluated, and the best action returned. A planning depth of two allows one inter-facility transfer after the initial destination, matching standard triage practice. \new{At the first step the subtype is unknown. Rather than recursing on a sampled subtype, which would let the planner peek at information the crew does not have, the value of a successor state is the prior-weighted sum over subtypes of the depth-one value from that state with the subtype known:
+\begin{equation}
+V_2(s) = \max_{a} \; \sum_{\sigma} p_\sigma \, \big[ R(s, a, s'_\sigma) + \max_{a'} R(s'_\sigma, a', s''_\sigma) \big],
+\end{equation}
+where $s'_\sigma$ is the arrival state with subtype $\sigma$ revealed. The action set at each hospital is small (transfer to one of the reachable higher-tier centres, or stay), so the search is exact.}
+
+\new{[Add a short complexity paragraph: with $H$ hospitals the first step has at most $H$ actions and the second at most $H$ per subtype, so one decision costs $O(4H^2)$ reward evaluations, each of which needs at most two travel times; travel times from a pickup location to all hospitals are obtained in one matrix request to the routing engine and cached for the decision, and hospital-to-hospital times are cached across decisions. Measured latency is reported in Section~\ref{sec:results}.]}
+
+\subsection{Comparator policies}
+\jama{JAMA "Comparator Policies", moved here; tier names updated.}
+We compare against three fixed rules. \emph{Nearest hospital} routes to the geographically closest hospital regardless of capability, the default where no triage protocol exists. \emph{Nearest EVT-capable centre} prefers the closest EVT-capable centre whenever one is reachable, as advocated in some states and implemented in Rhode Island; \new{if none is reachable it falls back to the nearest thrombolysis-capable centre, then to any hospital.} \emph{Nearest stroke centre} routes to whichever thrombolysis- or EVT-capable centre is closest, \new{with the same fallback.} \new{[Reviewer 2: note here that SF EMS policy is in effect "nearest stroke centre" and Santa Clara's is "nearest EVT-capable centre for LAMS-positive patients", so the heuristics are not straw men; cite the policies.]}
+
+\subsection{Distilling the policy into a decision tree}
+\jama{JAMA "Decision Tree Performance" first paragraph, methods part.}
+For use by EMS crews without computation, we approximate the MDP policy with a decision tree. Each simulated patient is labelled with the MDP's recommended destination, translated into a tier (EVT-capable, thrombolysis-capable, non-stroke-centre). Features are time since onset, road travel time to the nearest hospital of each tier, reachability indicators, and the pairwise differences and ratios of those travel times. \new{Trees of depth 1 to 10 and an unconstrained tree are trained on \pending{n} labelled patients and evaluated on \pending{n} held-out patients never used for training, scoring each tree's recommended destination with the same reward model and comparing it with the MDP's recommendation for the same patient. We report, per depth, the mean outcome, the mean loss relative to the MDP, the share of the MDP's gain over nearest-hospital routing that the tree recovers, and the number of leaves, and select the shallowest tree within 1\% of the MDP. The tree is a static artefact: it can be printed, embedded in a dispatch system, or read aloud, and it changes only when the hospital table or the travel-time engine does.}

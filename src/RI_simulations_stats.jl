@@ -21,7 +21,7 @@ using CSV, Statistics, Distributions, DataFrames, StatsBase, Printf
 # Input/output prefix configuration via env var
 # -----------------------------------------------------------------------------
 const INPUT_PREFIX = get(ENV, "INPUT_PREFIX", "RI_simulation_results")
-const OUTPUT_TAG   = INPUT_PREFIX == "RI_simulation_results" ? "" : "_realized"
+const OUTPUT_TAG   = replace(INPUT_PREFIX, "RI_simulation_results" => "")   # "", "_realized", "_evtonsite", ...
 println("Input prefix : $INPUT_PREFIX")
 println("Output tag   : '$OUTPUT_TAG'")
 println()

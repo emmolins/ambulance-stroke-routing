@@ -1,0 +1,31 @@
+% ---- VII. Discussion and Limitations. Budget 1.1 pages (~800 words). Source: JAMA Discussion
+% (3 paragraphs). Mostly NEW: one paragraph per JAMA reviewer objection, each either answered
+% by a result or owned as a limitation. Drop the Regional Medical Center aside (Reviewer 2).
+\section{Discussion}
+
+\jama{JAMA Discussion para 1, lightly edited.}
+The MDP policy improves expected outcomes over nearest-hospital routing in a decentralised system and matches a centralised protocol in a small state while spreading load across hospitals. The gains are concentrated where they matter for equity: areas distant from EVT-capable centres, with no losses in well-served areas, and the stratified analysis shows the gain over the heuristics as well as over the default. The decision tree carries most of this benefit into a form a crew can apply.
+
+\jama{JAMA Discussion para 2 (travel time trade-off), numbers pending.}
+Two practical considerations merit attention. The MDP increases mean initial transport time to \pending{xx} minutes from \pending{xx} under nearest-hospital routing, but it reduces downstream transfers and their delays; for LVO patients, bypassing a closer but less capable hospital means arriving at an EVT-capable centre within the therapeutic window. The second is hospital load, discussed under limitations.
+
+\subsection{Limitations}
+\new{\emph{Capacity and queueing.} The model assumes every hospital can accept every patient routed to it. We do not model bed or angiography-suite availability, diversion, or the interaction between concurrent patients. The load-distribution result (the MDP uses \pending{k} hospitals where the nearest-EVT rule uses \pending{j}) is a qualitative indication that the policy does not concentrate demand, not a capacity analysis. A capacity-aware extension would add hospital state to the MDP and is the main direction for future work.}
+
+\new{\emph{Validation against observed outcomes.} Results are simulated. The outcome model is taken from published onset-to-treatment curves~\cite{holodinsky2018}, travel times from a routing engine, and in-hospital intervals from national registries; the composition has not been validated against a cohort with observed routing and outcomes. The sensitivity analyses bound the effect of the main inputs but do not substitute for validation, which requires EMS and hospital record linkage.}
+
+\new{\emph{In-hospital intervals.} One value per interval for all hospitals of a tier. Real door-to-needle, door-to-puncture and door-in-door-out times vary widely between hospitals and over time; the DIDO sensitivity shows the direction and size of the effect, and hospital-specific intervals could be substituted where an agency has them.}
+
+\new{\emph{Patient population.} The cohort is LAMS~$\geq$~4 with onset within 270 minutes. Prehospital scales identify LVO imperfectly, and EVT benefit extends to 24 hours for selected patients. The outcome curves used here are defined to 270 minutes; extending the model to the late window needs late-window outcome functions and is left for future work. Less severe strokes also face routing decisions that the present scope does not address.}
+
+\new{\emph{Haemorrhage.} The outcome for intracerebral haemorrhage is time-invariant in the reward. Evidence that timely bundled care improves ICH outcomes~\cite{interact3} suggests a time-dependent function would be appropriate when one is available; its absence biases the model against any destination choice motivated by ICH, which is conservative for the MDP's gains.}
+
+\new{\emph{Capability definitions.} Hospitals are classified by verified certification. Some hospitals perform thrombectomy without certification; the on-site sensitivity analysis treats them as EVT-capable and \pending{changes / does not change} the conclusions. Designations also change over time; the method takes the table as input.}
+
+\new{\emph{Generalisability and the baseline.} Both regions are dense relative to much of the United States, and routing protocols vary by jurisdiction: San Francisco routes to the nearest stroke centre without LVO tiering, Santa Clara County to the nearest EVT-capable centre for LAMS-positive patients, and Marin transports LVO patients out of county by air. Nearest-hospital routing is therefore a lower bound on current practice rather than a description of it everywhere; the heuristic comparators correspond to the protocols actually in use, which is why both are reported. Air transport is not modelled.}
+
+\new{\emph{Travel times.} Deterministic routing-engine estimates stand in for traffic-dependent times; the noise and bias analyses cover the plausible range of error but not time-of-day structure.}
+
+\jama{JAMA Discussion para 3 (future work), trimmed; drop the Regional Medical Center sentence.}
+\subsection{Future work}
+Capacity-aware routing with hospital state; hospital-specific intervals; late-window outcome functions; air transport; and a prospective evaluation with an EMS agency, for which the decision tree is the deployable artefact.

@@ -24,7 +24,7 @@ default(fontfamily="Times New Roman")
 # file with a `_realized` suffix so the two analyses don't clobber each other.
 # -----------------------------------------------------------------------------
 const INPUT_PREFIX = get(ENV, "INPUT_PREFIX", "CA_simulation_results")
-const OUTPUT_TAG   = INPUT_PREFIX == "CA_simulation_results" ? "" : "_realized"
+const OUTPUT_TAG   = replace(INPUT_PREFIX, "CA_simulation_results" => "")   # "", "_realized", "_evtonsite", ...
 println("Input prefix : $INPUT_PREFIX")
 println("Output tag   : '$OUTPUT_TAG'")
 println()

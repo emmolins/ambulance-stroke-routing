@@ -69,8 +69,10 @@ POINTS_CSV    = "sampled_points/RI_points.csv"
 
 # Output paths (auto-tagged with replicate index)
 _rep_tag      = REPLICATE_INDEX == 0 ? "" : "_rep$(REPLICATE_INDEX)"
-RESULTS_CSV   = "simulation_results/RI_simulation_results$(_rep_tag).csv"
-DROPOUTS_CSV  = "simulation_results/RI_simulation_dropouts$(_rep_tag).csv"
+# Optional OUTPUT_TAG (e.g. "_evtonsite") keeps sensitivity runs apart from the baseline files.
+_out_tag      = get(ENV, "OUTPUT_TAG", "")
+RESULTS_CSV   = "simulation_results/RI_simulation_results$(_rep_tag)$(_out_tag).csv"
+DROPOUTS_CSV  = "simulation_results/RI_simulation_dropouts$(_rep_tag)$(_out_tag).csv"
 
 # Ordered policy spec: (name, policy function returning an Action or nothing)
 const POLICIES = (
