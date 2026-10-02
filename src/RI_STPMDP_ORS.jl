@@ -356,13 +356,17 @@ function POMDPs.reward(m::StrokeMDP, s::PatientState, a::Action, sp::PatientStat
         t_onset_needle = sp.t_onset
         t_onset_puncture = sp.t_onset
     elseif sp.loc.type == PSC
+        # Alteplase is given at the PSC itself, so needle time does not depend on
+        # whether an onward CSC transfer exists. (Previously set only inside the
+        # `else` below, leaving it undefined and crashing reward() for PSCs with
+        # no CSC within the travel-time cutoff, e.g. Sonoma County.)
+        t_onset_needle = sp.t_onset
         nearest_CSC = find_nearest_CSC(m, sp.loc)
         if nearest_CSC === nothing
             csc_unreachable = true
         else
             time_to_CSC = calculate_travel_time(sp.loc, nearest_CSC)
             t_onset_puncture = sp.t_onset + time_to_CSC + nearest_CSC.performance_metric
-            t_onset_needle = sp.t_onset
         end
     elseif sp.loc.type == CLINIC || sp.loc.type == FIELD
         # find nearest CSC; calculate time to CSC

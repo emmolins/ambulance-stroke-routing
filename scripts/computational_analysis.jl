@@ -92,9 +92,15 @@ function time_best_action(mdp, state, depth)
         best_action(mdp, state, depth)
         return (time_ns() - t0) / 1e9
     catch e
+        global n_errors_reported
+        if n_errors_reported < 5
+            n_errors_reported += 1
+            @warn "best_action failed (depth=$depth); timing recorded as NaN" exception = (e, catch_backtrace())
+        end
         return NaN
     end
 end
+n_errors_reported = 0
 
 # ============================================================================
 # Main

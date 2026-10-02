@@ -77,6 +77,7 @@ const BIAS_MULT = haskey(ENV, "TRAVEL_TIME_BIAS_MULT") ?
                   parse(Float64, ENV["TRAVEL_TIME_BIAS_MULT"]) : 1.0
 
 if NOISE_SD == 0 && BIAS_MULT == 1.0
+    error("Refusing to run with no perturbation: output name would equal the input and overwrite the baseline replicate files. Set TRAVEL_TIME_NOISE_SD and/or TRAVEL_TIME_BIAS_MULT.")
     @warn "Both TRAVEL_TIME_NOISE_SD and TRAVEL_TIME_BIAS_MULT are at their " *
           "no-op defaults; this run will reproduce the realized-rewards baseline " *
           "(equivalent to recompute_realized_rewards.jl)."

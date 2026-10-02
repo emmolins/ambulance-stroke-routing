@@ -60,7 +60,7 @@ N_TEST       = 200                       # patients per sweep run (kept moderate
 DEPTHS       = [1, 2, 3, 4, 5, 6, 8, 10, -1]   # -1 = unconstrained (set to nothing in DT)
 OUTPUT_DIR   = "decision_tree_output"
 TRAIN_CSV    = joinpath(OUTPUT_DIR, "training_data_detailed.csv")
-POINTS_CSV   = "sampled_points/CA_points.csv"
+POINTS_CSV   = joinpath(OUTPUT_DIR, "decision_tree_test.csv")   # held out by decision_tree_build.jl
 
 Random.seed!(SEED)
 
@@ -117,7 +117,7 @@ for d in DEPTHS
     m = DecisionTreeClassifier(max_depth=md)
     DecisionTree.fit!(m, train_features, train_labels)
     models[d] = m
-    println("  depth=$(d == -1 ? "∞" : d): $(DecisionTree.length(m.root)) total nodes")
+    println("  depth=$(d == -1 ? "∞" : d): $(DecisionTree.length(m.root)) leaves")
 end
 
 # ============================================================================
@@ -125,7 +125,6 @@ end
 # ============================================================================
 println("\n[3/5] Building held-out test set of $N_TEST patients ...")
 
-train_used_set = Set(zip(train_df.Time_to_CSC_min, train_df.Time_to_PSC_min))  # rough match
 all_points = [(row.Latitude, row.Longitude) for row in CSV.File(POINTS_CSV)]
 shuffle!(all_points)
 
@@ -163,7 +162,7 @@ end
 
 # Helper: reward of routing to a given destination (nothing = no route)
 function reward_of_route(s::PatientState, dest::Union{Location, Nothing})
-    dest === nothing && return missing
+    dest === nothing && return (missing, nothing)
     action_str = "ROUTE_" * dest.name
     a = string_to_enum(action_str)
     sp = rand(transition(mdp, s, a))
@@ -188,8 +187,12 @@ progress = Progress(N_TEST; desc = "patients ")
 idx = 0
 collected = 0
 while collected < N_TEST && idx < length(all_points)
+    global idx, collected
     idx += 1
     latlon = all_points[idx]
+    n_rows_before = nrow(per_patient)
+  try
+    global collected                           # try introduces a scope; keep writes on the global
     s = PatientState(
         Location("FIELD$collected", latlon, -1, FIELD),
         30 + rand() * 240,
@@ -206,8 +209,7 @@ while collected < N_TEST && idx < length(all_points)
     sp_mdp = rand(transition(mdp, s, mdp_action))
     mdp_reward = reward(mdp, s, mdp_action, sp_mdp)
 
-    collected += 1
-    sid = collected
+    sid = collected + 1
 
     # MDP row (used as both a comparator and the reference for outcome loss)
     push!(per_patient, (sid, "MDP_optimal", mdp_action_str, mdp_reward, mdp_reward))
@@ -239,9 +241,20 @@ while collected < N_TEST && idx < length(all_points)
     policy_eval("Heuristic_1", heuristic_1_action(mdp, s))
     policy_eval("Heuristic_2", heuristic_2_action(mdp, s))
 
+    collected += 1
     next!(progress)
+    if collected % 25 == 0                       # checkpoint so an ORS hiccup loses < 25 patients
+        mkpath(OUTPUT_DIR)
+        CSV.write(joinpath(OUTPUT_DIR, "sweep_perpatient.csv"), per_patient)
+    end
+  catch e
+    e isa InterruptException && rethrow()
+    @warn "patient at point $idx failed; skipping" exception = (e, catch_backtrace())
+    deleteat!(per_patient, (n_rows_before + 1):nrow(per_patient))   # drop partial rows
+  end
 end
 finish!(progress)
+collected < N_TEST && @warn "Only $collected of $N_TEST patients evaluated (point file exhausted or ORS failures)."
 
 println("  evaluated $(collected) patients (× $(length(DEPTHS) + 4) policies each)")
 
@@ -287,7 +300,7 @@ summary_df.depth        = [startswith(r.policy, "tree_depth_") ?
                              (r.policy == "tree_depth_inf" ? -1 :
                               parse(Int, replace(r.policy, "tree_depth_" => ""))) :
                              missing for r in eachrow(summary_df)]
-summary_df.n_nodes      = [startswith(r.policy, "tree_depth_") ?
+summary_df.n_leaves     = [startswith(r.policy, "tree_depth_") ?
                              DecisionTree.length(models[r.depth].root) : missing
                            for r in eachrow(summary_df)]
 
@@ -298,7 +311,7 @@ println()
 println("="^110)
 println("DECISION-TREE DEPTH SWEEP — summary")
 println("="^110)
-println("Policy                       n       mean reward    outcome loss    % of MDP recovered    nodes")
+println("Policy                       n       mean reward    outcome loss    % of MDP recovered    leaves")
 println("-"^110)
 for r in eachrow(summary_df)
     printstyled(rpad(r.policy, 26), color=:default)
@@ -306,7 +319,7 @@ for r in eachrow(summary_df)
     print(rpad(string(round(r.mean_reward, digits=4)), 14))
     print(rpad("$(round(r.outcome_loss_mean, digits=5)) ± $(round(r.outcome_loss_se, digits=5))", 17))
     print(rpad("$(round(r.recovered_pct, digits=2))%", 22))
-    println(ismissing(r.n_nodes) ? "—" : string(r.n_nodes))
+    println(ismissing(r.n_leaves) ? "—" : string(r.n_leaves))
 end
 println()
 println("✓ Wrote $(joinpath(OUTPUT_DIR, "sweep_summary.csv"))")
@@ -357,6 +370,7 @@ println()
 target_pct = 99.0
 sweet = nothing
 for r in eachrow(sort(tree_rows, :depth))
+    global sweet
     if r.recovered_pct >= target_pct
         sweet = r
         break
