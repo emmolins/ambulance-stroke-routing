@@ -31,8 +31,8 @@ step() {  # step <n> <name> <command...>
 
 replicates() {  # replicates <driver> <extra env...>  -> 10 reps, $PAR at a time
     local driver=$1; shift
-    seq 1 10 | xargs -P "$PAR" -I{} env "$@" REPLICATE_INDEX={} \
-        $J "$driver" > "run_logs/${REGION}_rep_{}.log" 2>&1
+    seq 1 10 | xargs -P "$PAR" -I{} sh -c \
+        "env $* REPLICATE_INDEX={} $J '$driver' > 'run_logs/${REGION}_rep_{}.log' 2>&1"
 }
 
 if [[ $REGION == ca ]]; then
@@ -58,6 +58,7 @@ if [[ $REGION == ca ]]; then
     step 20 grid_tract_join   data_prep/.venv/bin/python scripts/grid_to_tract_join.py
     step 21 equity            $J scripts/equity_analysis.jl
     step 22 grid_maps         $J viz/CA_grid_maker.jl
+    step 23 latency           $J scripts/computational_analysis.jl
 elif [[ $REGION == ri ]]; then
     export ORS_PORT="${ORS_PORT:-8081}"
     step 1  replicates        replicates src/RI_simulations.jl

@@ -369,7 +369,9 @@ println("✓ Wrote $(joinpath(OUTPUT_DIR, "sweep_tradeoff.pdf"))")
 println()
 target_pct = 99.0
 sweet = nothing
-for r in eachrow(sort(tree_rows, :depth))
+# "Smallest" = fewest leaves (depth -1 encodes the unconstrained tree, so sorting
+# by depth would put it first).
+for r in eachrow(sort(tree_rows, :n_leaves))
     global sweet
     if r.recovered_pct >= target_pct
         sweet = r
@@ -383,7 +385,7 @@ if sweet !== nothing
     println("="^78)
     println("Smallest tree that recovers ≥ $target_pct% of MDP-optimal expected outcome:")
     println("  depth      = $(sweet.depth == -1 ? "∞" : sweet.depth)")
-    println("  # nodes    = $(sweet.n_nodes)")
+    println("  # leaves   = $(sweet.n_leaves)")
     println("  mean reward      = $(round(sweet.mean_reward, digits=4))")
     println("  outcome loss     = $(round(sweet.outcome_loss_mean, digits=5)) ± $(round(sweet.outcome_loss_se, digits=5))")
     println("  % MDP recovered  = $(round(sweet.recovered_pct, digits=2))%")

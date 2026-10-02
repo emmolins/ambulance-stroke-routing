@@ -88,6 +88,11 @@ function time_best_action(mdp, state, depth)
     try
         # Use elapsed_time rather than @elapsed so we can capture both the
         # numeric value and any thrown error (which @elapsed swallows).
+        # Time a fresh patient: drop this pickup location's cached travel-time
+        # row so the measurement includes the one ORS matrix request a real
+        # dispatch would make. Hospital-to-hospital rows stay cached, as they
+        # would in deployment.
+        delete!(mdp.transfer_times_dict, state.loc.latlon)
         t0 = time_ns()
         best_action(mdp, state, depth)
         return (time_ns() - t0) / 1e9
