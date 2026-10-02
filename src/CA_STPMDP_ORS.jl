@@ -332,6 +332,12 @@ function calculate_travel_time(loc1::Location, loc2::Location)
         if isa(e, HTTP.Exceptions.StatusError) && e.status == 404
             println("Warning: No routable point near coordinate $(loc1.latlon) or $(loc2.latlon)")
             return nothing
+        elseif isa(e, HTTP.Exceptions.StatusError) && e.status == 400 &&
+               occursin("2004", String(copy(e.response.body)))
+            # ORS error 2004: route longer than the server's maximum_distance
+            # (ors-config.yml). Treat as unroutable rather than aborting the run.
+            println("Warning: ORS distance limit exceeded for $(loc1.name) -> $(loc2.name); treated as unroutable. Raise maximum_distance in ors-config.yml.")
+            return nothing
         else
             # For all other exceptions, rethrow so you see the real error
             rethrow(e)

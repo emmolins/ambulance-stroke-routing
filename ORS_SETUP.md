@@ -105,6 +105,23 @@ curl "http://localhost:8080/ors/v2/directions/driving-car?start=-122.4194,37.774
 
 A successful response is JSON with `features[0].properties.segments[0].duration` (seconds). That's exactly what the Julia code reads.
 
+### Required: raise the route-distance limit
+
+ORS caps routes at 100 km by default. Inter-facility transfers in the model are not distance-limited (reachability is decided by the road network), and several Bay Area hospital pairs exceed 100 km by road, so the cap must be raised or those calls fail with ORS error 2004. After the first start has written `ors-docker/config/ors-config.yml`, uncomment two lines under `ors: engine:` so the block reads
+
+```yaml
+    profile_default:
+      maximum_distance: 400000
+```
+
+(leave the other `profile_default` keys commented), then `docker restart ors-app`. Verify with a long pair, e.g. Berkeley to Gilroy:
+
+```sh
+curl -s "http://localhost:8080/ors/v2/directions/driving-car?start=-122.25722,37.85547&end=-121.57178,37.03656" | head -c 80
+```
+
+A `FeatureCollection` means the limit took effect; an error with code 2004 means it did not. The Julia code treats a 2004 as unroutable rather than crashing, so a missed config change shows up as "distance limit exceeded" warnings in the run log.
+
 ## Day-to-day usage
 
 ```sh
