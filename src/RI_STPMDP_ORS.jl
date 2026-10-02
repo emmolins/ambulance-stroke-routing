@@ -32,7 +32,10 @@ using Random
 ######  ENUMS AND DATA STRUCTURES
 ###### =========================================================================
 
-@enum LocType FIELD CLINIC PSC CSC
+# NSC = acute-care hospital with a 24-h ED but no stroke certification (non-stroke-center).
+# PSC = thrombolysis-capable (Primary / Advanced Primary / Acute Stroke Ready).
+# CSC = EVT-capable on site (Comprehensive or Thrombectomy-Capable; see hospitals/README.md).
+@enum LocType FIELD NSC PSC CSC
 @enum StrokeTypeKnown UNKNOWN KNOWN
 @enum StrokeType LVO NLVO HEMORRHAGIC MIMIC
 
@@ -43,8 +46,8 @@ hospital_info_file = "hospitals/RI_hospitals.csv"
 mutable struct Location
     name::String  # i.e. "STANFORD"
     latlon::Tuple{Float64, Float64}  # Location of the hospital
-    performance_metric::Float64  # transfer time if CLINIC/PSC/CSC, -1 otherwise
-    type::LocType  # FIELD CLINIC PSC CSC
+    performance_metric::Float64  # transfer time if NSC/PSC/CSC, -1 otherwise
+    type::LocType  # FIELD NSC PSC CSC
 end
 
 # Define PatientState struct
@@ -66,7 +69,6 @@ end
     ROUTE_OurLadyOfFatimaHospital
     ROUTE_RogerWilliamsMedicalCenter
     ROUTE_TheMiriamHospital
-    ROUTE_WomenInfantsHospital
     # Kent County
     ROUTE_KentHospital
     # Newport County
@@ -95,6 +97,10 @@ end
 
 # In: a CSV file representing hospitals
 # Out: a vector of Locations
+const EVT_DEFINITION = lowercase(get(ENV, "EVT_DEFINITION", "certified"))
+EVT_DEFINITION in ("certified", "onsite") ||
+    error("EVT_DEFINITION must be 'certified' or 'onsite' (got '$EVT_DEFINITION')")
+
 function csv_to_locations(file)
     df = CSV.read(file, DataFrame, delim=',')
     locs = []
@@ -105,6 +111,13 @@ function csv_to_locations(file)
         tup = (lat, lon)
         metric = Float64(row["Performance Metric"])
         type = string_to_enum(row["Type"])
+        # EVT_DEFINITION=onsite: treat every hospital that performs thrombectomy on
+        # site (EVTOnSite == yes, including uncertified programmes) as CSC.
+        # Default "certified": CSC means TJC/DNV CSC or TSC, or a LEMSA EVT designation.
+        if EVT_DEFINITION == "onsite" && "EVTOnSite" in names(df) &&
+           lowercase(strip(string(row["EVTOnSite"]))) == "yes"
+            type = CSC
+        end
         push!(locs, Location(hospital, tup, metric, type))
     end
     return locs
@@ -165,7 +178,7 @@ function POMDPs.actions(m::StrokeMDP, s::PatientState)
                 end
             end
         end
-    elseif s.loc.type == CLINIC
+    elseif s.loc.type == NSC
         for hospital in m.locations
             if hospital.type == PSC || hospital.type == CSC
                 travel_time = calculate_travel_time(s.loc, hospital)
@@ -217,10 +230,15 @@ end
 
 # Returns car travel time in minutes between two locations using ORS
 function calculate_travel_time(loc1::Location, loc2::Location)
-    # Return nothing if distance >50 km (unroutable)
-    dist_meters = haversine_distance(loc1, loc2)
-    if dist_meters > 80000
-        return nothing
+    # EMS catchment assumption: the initial transport from the pickup location
+    # is restricted to facilities within 80 km. Inter-facility transfers
+    # (hospital origin) carry no distance restriction; reachability is decided
+    # by the road network (ORS returns 404 for unroutable pairs).
+    if loc1.type == FIELD
+        dist_meters = haversine_distance(loc1, loc2)
+        if dist_meters > 80000
+            return nothing
+        end
     end
 
     base_url = "http://localhost:8080/ors/v2/directions/driving-car"
@@ -298,10 +316,10 @@ end
 # and downstream scripts that reference them by name still work.
 find_nearest_CSC(m, cur_loc)        = find_nearest(m, cur_loc, l -> l.type == CSC)
 find_nearest_PSC(m, cur_loc)        = find_nearest(m, cur_loc, l -> l.type == PSC)
-find_nearest_clinic(m, cur_loc)     = find_nearest(m, cur_loc, l -> l.type == CLINIC)
+find_nearest_nsc(m, cur_loc)     = find_nearest(m, cur_loc, l -> l.type == NSC)
 find_nearest_PSC_or_CSC(m, cur_loc) = find_nearest(m, cur_loc, l -> l.type == PSC || l.type == CSC)
 find_nearest_hospital(m, cur_loc)   = find_nearest(m, cur_loc,
-                                          l -> l.type == CSC || l.type == PSC || l.type == CLINIC)
+                                          l -> l.type == CSC || l.type == PSC || l.type == NSC)
 
 ###### =========================================================================
 ######  TRANSITION FUNCTION
@@ -365,16 +383,16 @@ function POMDPs.reward(m::StrokeMDP, s::PatientState, a::Action, sp::PatientStat
         if nearest_CSC === nothing
             csc_unreachable = true
         else
-            time_to_CSC = calculate_travel_time(sp.loc, nearest_CSC)
+            time_to_CSC = cached_travel_time(m, sp.loc, nearest_CSC)
             t_onset_puncture = sp.t_onset + time_to_CSC + nearest_CSC.performance_metric
         end
-    elseif sp.loc.type == CLINIC || sp.loc.type == FIELD
+    elseif sp.loc.type == NSC || sp.loc.type == FIELD
         # find nearest CSC; calculate time to CSC
         nearest_CSC = find_nearest_CSC(m, sp.loc)
         if nearest_CSC === nothing
             csc_unreachable = true
         else
-            time_to_CSC = calculate_travel_time(sp.loc, nearest_CSC)
+            time_to_CSC = cached_travel_time(m, sp.loc, nearest_CSC)
             t_onset_puncture = sp.t_onset + time_to_CSC + nearest_CSC.performance_metric
         end
         # find nearest CSC or PSC; calculate time to CSC/PSC
@@ -382,7 +400,7 @@ function POMDPs.reward(m::StrokeMDP, s::PatientState, a::Action, sp::PatientStat
         if nearest_PSC_or_CSC === nothing
             psc_unreachable = true
         else
-            time_to_PSC_or_CSC = calculate_travel_time(sp.loc, nearest_PSC_or_CSC)
+            time_to_PSC_or_CSC = cached_travel_time(m, sp.loc, nearest_PSC_or_CSC)
             t_onset_needle = sp.t_onset + time_to_PSC_or_CSC + nearest_PSC_or_CSC.performance_metric
         end
     end

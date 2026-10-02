@@ -65,10 +65,10 @@ POINTS_CSV   = joinpath(OUTPUT_DIR, "decision_tree_test.csv")   # held out by de
 Random.seed!(SEED)
 
 # Hospital-type labels (same order as decision_tree_build.jl)
-TYPE_LABELS  = ["Route_CSC", "Route_PSC", "Route_Clinic"]
+TYPE_LABELS  = ["Route_CSC", "Route_PSC", "Route_NSC"]
 const LBL_CSC = 1
 const LBL_PSC = 2
-const LBL_CLINIC = 3
+const LBL_NSC = 3
 
 # ============================================================================
 # 1. Load training data
@@ -83,25 +83,25 @@ println("  loaded $(nrow(train_df)) training samples")
 
 # Build feature matrix in the same column order as decision_tree_build.jl uses.
 FEATURE_NAMES = [
-    "Time to CSC", "Time to PSC", "Time to Clinic", "Time since onset",
-    "CSC Reachable", "PSC Reachable", "Clinic Reachable",
-    "Diff CSC-PSC", "Diff CSC-Clinic", "Diff PSC-Clinic",
-    "Ratio CSC/PSC", "Ratio CSC/Clinic", "Ratio PSC/Clinic",
+    "Time to CSC", "Time to PSC", "Time to NSC", "Time since onset",
+    "CSC Reachable", "PSC Reachable", "NSC Reachable",
+    "Diff CSC-PSC", "Diff CSC-NSC", "Diff PSC-NSC",
+    "Ratio CSC/PSC", "Ratio CSC/NSC", "Ratio PSC/NSC",
 ]
 train_features = Matrix(hcat(
     train_df.Time_to_CSC_min,
     train_df.Time_to_PSC_min,
-    train_df.Time_to_Clinic_min,
+    train_df.Time_to_NSC_min,
     train_df.Time_since_onset_min,
     Float64.(train_df.CSC_Reachable),
     Float64.(train_df.PSC_Reachable),
-    Float64.(train_df.Clinic_Reachable),
+    Float64.(train_df.NSC_Reachable),
     train_df.Diff_CSC_PSC,
-    train_df.Diff_CSC_Clinic,
-    train_df.Diff_PSC_Clinic,
+    train_df.Diff_CSC_NSC,
+    train_df.Diff_PSC_NSC,
     train_df.Ratio_CSC_PSC,
-    train_df.Ratio_CSC_Clinic,
-    train_df.Ratio_PSC_Clinic,
+    train_df.Ratio_CSC_NSC,
+    train_df.Ratio_PSC_NSC,
 ))
 train_labels = train_df.Predicted_Label
 @assert length(train_labels) == size(train_features, 1)
@@ -134,7 +134,7 @@ mdp = StrokeMDP()
 function build_features(s::PatientState)
     csc_h = find_nearest_CSC(mdp, s.loc)
     psc_h = find_nearest_PSC(mdp, s.loc)
-    cli_h = find_nearest_clinic(mdp, s.loc)
+    cli_h = find_nearest_nsc(mdp, s.loc)
     csc_r = csc_h !== nothing
     psc_r = psc_h !== nothing
     cli_r = cli_h !== nothing

@@ -158,12 +158,21 @@ function process_file(in_path::String, out_path::String, mdp::StrokeMDP,
 
     Random.seed!(rng_seed(rep_id, NOISE_SD, BIAS_MULT))
 
+    # One noise draw per (patient, destination). Policies that send the same
+    # patient to the same hospital must see the same perturbed travel time;
+    # otherwise their paired difference is pure noise instead of zero and the
+    # paired SE is inflated. Keyed by action string (ROUTE_<hospital>).
+    noise_by_dest = [Dict{String, Float64}() for _ in 1:n]
+    draw_noise(i, action_str) = get!(noise_by_dest[i], String(action_str)) do
+        noise_factor(NOISE_SD)
+    end
+
     for (action_col, reward_col, travel_col) in POLICY_SPECS
         new_rewards = Vector{Float64}(undef, n)
         for i in 1:n
             realized_type = STROKE_TYPE_MAP[df[i, :stroke_type]]
             t_recorded    = df[i, travel_col]
-            t_perturbed   = t_recorded * BIAS_MULT * noise_factor(NOISE_SD)
+            t_perturbed   = t_recorded * BIAS_MULT * draw_noise(i, df[i, action_col])
             new_rewards[i] = perturbed_reward(
                 mdp, i,
                 df[i, :start_lat], df[i, :start_lon],

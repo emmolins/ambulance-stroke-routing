@@ -58,7 +58,7 @@ test_results = DataFrame(
     Stroke_Type = fill("", N_TEST),
     t_CSC = zeros(Float64, N_TEST),
     t_PSC = zeros(Float64, N_TEST),
-    t_Clinic = zeros(Float64, N_TEST),
+    t_NSC = zeros(Float64, N_TEST),
     Features = [[] for _ in 1:N_TEST],
     DT_Action = fill("", N_TEST),
     DT_Reward = zeros(Float64, N_TEST),
@@ -80,7 +80,7 @@ test_results = DataFrame(
     Stroke_Type = String[],
     t_CSC = Float64[],
     t_PSC = Float64[],
-    t_Clinic = Float64[],
+    t_NSC = Float64[],
     Features = Vector{Any}[],
     DT_Action = String[],
     DT_Reward = Float64[],
@@ -105,37 +105,37 @@ while valid_samples < N_TEST && attempts < max_attempts
     s = PatientState(loc, t_onset, UNKNOWN, st_type)
 
     # Declare these as local to avoid soft scope warning
-    local csc_reachable, psc_reachable, clinic_reachable
+    local csc_reachable, psc_reachable, nsc_reachable
 
     csc_hosp, t_nearest_CSC = safe_find_nearest_hospital(mdp, loc, find_nearest_CSC)
     psc_hosp, t_nearest_PSC = safe_find_nearest_hospital(mdp, loc, find_nearest_PSC)
-    clinic_hosp, t_nearest_clinic = safe_find_nearest_hospital(mdp, loc, find_nearest_clinic)
+    nsc_hosp, t_nearest_nsc = safe_find_nearest_hospital(mdp, loc, find_nearest_nsc)
 
     csc_reachable = t_nearest_CSC !== nothing
     psc_reachable = t_nearest_PSC !== nothing
-    clinic_reachable = t_nearest_clinic !== nothing
+    nsc_reachable = t_nearest_nsc !== nothing
 
     # Replace unreachable with large number
     t_csc = csc_reachable ? t_nearest_CSC : 1.0e8
     t_psc = psc_reachable ? t_nearest_PSC : 1.0e8
-    t_clinic = clinic_reachable ? t_nearest_clinic : 1.0e8
+    t_nsc = nsc_reachable ? t_nearest_nsc : 1.0e8
 
     # Differences
     diff_CSC_PSC = (csc_reachable && psc_reachable) ? abs(t_csc - t_psc) : 0.0
-    diff_CSC_Clinic = (csc_reachable && clinic_reachable) ? abs(t_csc - t_clinic) : 0.0
-    diff_PSC_Clinic = (psc_reachable && clinic_reachable) ? abs(t_psc - t_clinic) : 0.0
+    diff_CSC_NSC = (csc_reachable && nsc_reachable) ? abs(t_csc - t_nsc) : 0.0
+    diff_PSC_NSC = (psc_reachable && nsc_reachable) ? abs(t_psc - t_nsc) : 0.0
 
     # Ratios
     ratio_CSC_PSC = (csc_reachable && psc_reachable && t_psc > 0) ? t_csc / t_psc : 1.0
-    ratio_CSC_Clinic = (csc_reachable && clinic_reachable && t_clinic > 0) ? t_csc / t_clinic : 1.0
-    ratio_PSC_Clinic = (psc_reachable && clinic_reachable && t_clinic > 0) ? t_psc / t_clinic : 1.0
+    ratio_CSC_NSC = (csc_reachable && nsc_reachable && t_nsc > 0) ? t_csc / t_nsc : 1.0
+    ratio_PSC_NSC = (psc_reachable && nsc_reachable && t_nsc > 0) ? t_psc / t_nsc : 1.0
 
     # Build feature vector with 13 features in same order as training
     test_feats = [
-        t_csc, t_psc, t_clinic, t_onset,
-        Float64(csc_reachable), Float64(psc_reachable), Float64(clinic_reachable),
-        diff_CSC_PSC, diff_CSC_Clinic, diff_PSC_Clinic,
-        ratio_CSC_PSC, ratio_CSC_Clinic, ratio_PSC_Clinic
+        t_csc, t_psc, t_nsc, t_onset,
+        Float64(csc_reachable), Float64(psc_reachable), Float64(nsc_reachable),
+        diff_CSC_PSC, diff_CSC_NSC, diff_PSC_NSC,
+        ratio_CSC_PSC, ratio_CSC_NSC, ratio_PSC_NSC
     ]
 
     dt_label = DecisionTree.predict(model, test_feats)
@@ -145,8 +145,8 @@ while valid_samples < N_TEST && attempts < max_attempts
         target_loc, _ = safe_find_nearest_hospital(mdp, s.loc, find_nearest_CSC)
     elseif dt_action == "Route_PSC"
         target_loc, _ = safe_find_nearest_hospital(mdp, s.loc, find_nearest_PSC)
-    elseif dt_action == "Route_Clinic"
-        target_loc, _ = safe_find_nearest_hospital(mdp, s.loc, find_nearest_clinic)
+    elseif dt_action == "Route_NSC"
+        target_loc, _ = safe_find_nearest_hospital(mdp, s.loc, find_nearest_nsc)
     else
         error("Unknown action label: $dt_action")
     end    
@@ -177,7 +177,7 @@ while valid_samples < N_TEST && attempts < max_attempts
         string(st_type),
         t_csc,
         t_psc,
-        t_clinic,
+        t_nsc,
         test_feats,
         dt_action,
         dt_reward,

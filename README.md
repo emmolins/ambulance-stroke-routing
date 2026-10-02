@@ -1,6 +1,6 @@
 # Ambulance Routing for Stroke Triage
 
-A Markov Decision Process (MDP) approach to dispatching ambulances carrying suspected stroke patients to the right hospital — Comprehensive Stroke Center (CSC), Primary Stroke Center (PSC), or Clinic — given the patient's location, time since symptom onset, and the regional hospital network.
+A Markov Decision Process (MDP) approach to dispatching ambulances carrying suspected stroke patients to the right hospital, classified by on-site capability as EVT-capable (CSC in the code), thrombolysis-capable (PSC) or a non-stroke-center acute-care hospital (NSC), given the patient's location, time since symptom onset, and the regional hospital network.
 
 Two regions are analyzed:
 

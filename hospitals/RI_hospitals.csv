@@ -1,11 +1,10 @@
-Hospital,City,Lat,Lon,Performance Metric,Type,County,DisplayName
-RhodeIslandHospital,Providence,41.8105653,-71.408253,60,CSC,Providence,Rhode Island Hospital
-KentHospital,Warwick,41.7059855,-71.4772441,60,PSC,Kent,Kent Hospital
-LandmarkMedicalCenter,Woonsocket,42.003766,-71.4954862,60,PSC,Providence,Landmark Medical Center
-NewportHospital,Newport,41.4968721,-71.3059958,60,PSC,Newport,Newport Hospital
-OurLadyOfFatimaHospital,North Providence,41.8553944,-71.4604949,60,PSC,Providence,Our Lady of Fatima Hospital
-RogerWilliamsMedicalCenter,Providence,41.8345959,-71.4351035,60,PSC,Providence,Roger Williams Medical Center
-SouthCountyHospital,Wakefield,41.4313286,-71.4966542,60,PSC,Washington,South County Hospital
-TheMiriamHospital,Providence,41.8523656,-71.3982729,60,PSC,Providence,The Miriam Hospital
-WesterlyHospital,Westerly,41.3621153,-71.8248372,60,CLINIC,Washington,Westerly Hospital
-WomenInfantsHospital,Providence,41.8109023,-71.4133702,60,CLINIC,Providence,Women & Infants Hospital
+Hospital,City,Lat,Lon,Performance Metric,Type,CertLevel,EVTOnSite,County,DisplayName
+RhodeIslandHospital,Providence,41.8105653,-71.408253,60,CSC,TJC CSC,yes,Providence,Rhode Island Hospital
+KentHospital,Warwick,41.7059855,-71.4772441,60,PSC,TJC Advanced PSC,no,Kent,Kent Hospital
+LandmarkMedicalCenter,Woonsocket,42.003766,-71.4954862,60,PSC,TJC PSC,no,Providence,Landmark Medical Center
+NewportHospital,Newport,41.4968721,-71.3059958,60,PSC,TJC PSC,no,Newport,Newport Hospital
+OurLadyOfFatimaHospital,North Providence,41.8553944,-71.4604949,60,PSC,PSC (RIDOH),no,Providence,Our Lady of Fatima Hospital
+RogerWilliamsMedicalCenter,Providence,41.8345959,-71.4351035,60,PSC,TJC PSC,no,Providence,Roger Williams Medical Center
+SouthCountyHospital,Wakefield,41.4313286,-71.4966542,60,PSC,PSC (RIDOH),no,Washington,South County Hospital
+TheMiriamHospital,Providence,41.8523656,-71.3982729,60,PSC,TJC PSC,no,Providence,The Miriam Hospital
+WesterlyHospital,Westerly,41.3621153,-71.8248372,60,PSC,TJC ASRH,no,Washington,Westerly Hospital

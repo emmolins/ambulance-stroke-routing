@@ -46,7 +46,7 @@ function rand_location()
     return all_points[random_index]
 end
 
-# Map action to hospital type (CSC, PSC, or Clinic) using hospital name lookup
+# Map action to hospital type (CSC, PSC, or NSC) using hospital name lookup
 function hospital_type(a::Action)
     a_str = enum_to_string(a)
     hospital_name = replace(a_str, "ROUTE_" => "")
@@ -126,9 +126,9 @@ function sample_routable_patient_state(mdp::StrokeMDP; max_attempts::Int=50)
         )
         csc_hospital, t_nearest_CSC = safe_find_nearest_hospital(mdp, sampled_s.loc, find_nearest_CSC)
         psc_hospital, t_nearest_PSC = safe_find_nearest_hospital(mdp, sampled_s.loc, find_nearest_PSC)
-        clinic_hospital, t_nearest_clinic = safe_find_nearest_hospital(mdp, sampled_s.loc, find_nearest_clinic)
-        if t_nearest_CSC !== nothing || t_nearest_PSC !== nothing || t_nearest_clinic !== nothing
-            return sampled_s, t_nearest_CSC, t_nearest_PSC, t_nearest_clinic
+        nsc_hospital, t_nearest_nsc = safe_find_nearest_hospital(mdp, sampled_s.loc, find_nearest_nsc)
+        if t_nearest_CSC !== nothing || t_nearest_PSC !== nothing || t_nearest_nsc !== nothing
+            return sampled_s, t_nearest_CSC, t_nearest_PSC, t_nearest_nsc
         end        
         if attempt % 10 == 0
             println("Attempt $attempt/$max_attempts: Still searching for routable patient state...")
@@ -298,11 +298,11 @@ end
 # Initialize arrays to store feature data and labels
 time_to_CSCs = Union{Float64, Missing}[]
 time_to_PSCs = Union{Float64, Missing}[]
-time_to_clinics = Union{Float64, Missing}[]
+time_to_nscs = Union{Float64, Missing}[]
 t_onsets = Float64[]
 csc_reachable = Bool[]
 psc_reachable = Bool[]
-clinic_reachable = Bool[]
+nsc_reachable = Bool[]
 labels = Int[]
 
 mdp = StrokeMDP()
@@ -316,7 +316,7 @@ while successful_samples < N_SAMPLES
     global successful_samples, failed_attempts, N_SAMPLES
 
     # Sample a routable patient state with valid hospital routes
-    sampled_s, t_nearest_CSC, t_nearest_PSC, t_nearest_clinic = sample_routable_patient_state(mdp)
+    sampled_s, t_nearest_CSC, t_nearest_PSC, t_nearest_nsc = sample_routable_patient_state(mdp)
 
     if sampled_s === nothing
         failed_attempts += 1
@@ -332,18 +332,18 @@ while successful_samples < N_SAMPLES
     # Instead of 0.0, use `missing` for unreachable hospitals
     t_csc = t_nearest_CSC !== nothing ? t_nearest_CSC : missing
     t_psc = t_nearest_PSC !== nothing ? t_nearest_PSC : missing
-    t_clinic = t_nearest_clinic !== nothing ? t_nearest_clinic : missing
+    t_nsc = t_nearest_nsc !== nothing ? t_nearest_nsc : missing
 
     # Store patient features including reachability
     push!(time_to_CSCs, t_csc)
     push!(time_to_PSCs, t_psc)
-    push!(time_to_clinics, t_clinic)
+    push!(time_to_nscs, t_nsc)
     push!(t_onsets, sampled_s.t_onset)
     
     # NEW: Store reachability as boolean features
     push!(csc_reachable, t_nearest_CSC !== nothing)
     push!(psc_reachable, t_nearest_PSC !== nothing)
-    push!(clinic_reachable, t_nearest_clinic !== nothing)
+    push!(nsc_reachable, t_nearest_nsc !== nothing)
 
     try
         # Get the optimal action label for this patient
@@ -372,11 +372,11 @@ while successful_samples < N_SAMPLES
         # Roll back pushes if action fails
         pop!(time_to_CSCs)
         pop!(time_to_PSCs)
-        pop!(time_to_clinics)
+        pop!(time_to_nscs)
         pop!(t_onsets)
         pop!(csc_reachable)  # NEW: Clean up boolean flags too
         pop!(psc_reachable)
-        pop!(clinic_reachable)
+        pop!(nsc_reachable)
         failed_attempts += 1
         continue
     end
@@ -391,7 +391,7 @@ end
 # Replace missing values with a large number before building features
 time_to_CSCs_clean = [ismissing(x) ? 1e8 : x for x in time_to_CSCs]
 time_to_PSCs_clean = [ismissing(x) ? 1e8 : x for x in time_to_PSCs]
-time_to_clinics_clean = [ismissing(x) ? 1e8 : x for x in time_to_clinics]
+time_to_nscs_clean = [ismissing(x) ? 1e8 : x for x in time_to_nscs]
 
 
 println("Successfully generated $(N_SAMPLES) samples with $(failed_attempts) failed attempts")
@@ -424,28 +424,28 @@ println("Engineering features with boolean reachability...")
 
 # Only compute differences and ratios when both hospitals are reachable
 diffs_CSC_PSC = Float64[]
-diffs_CSC_Clinic = Float64[]
-diffs_PSC_Clinic = Float64[]
+diffs_CSC_NSC = Float64[]
+diffs_PSC_NSC = Float64[]
 ratios_CSC_PSC = Float64[]
-ratios_CSC_Clinic = Float64[]
-ratios_PSC_Clinic = Float64[]
+ratios_CSC_NSC = Float64[]
+ratios_PSC_NSC = Float64[]
 
 for i in 1:N_SAMPLES
     # Differences: only meaningful when both hospitals are reachable
     push!(diffs_CSC_PSC, 
           (csc_reachable[i] && psc_reachable[i]) ? abs(time_to_CSCs_clean[i] - time_to_PSCs_clean[i]) : 0.0)
-    push!(diffs_CSC_Clinic, 
-          (csc_reachable[i] && clinic_reachable[i]) ? abs(time_to_CSCs_clean[i] - time_to_clinics_clean[i]) : 0.0)
-    push!(diffs_PSC_Clinic, 
-          (psc_reachable[i] && clinic_reachable[i]) ? abs(time_to_PSCs_clean[i] - time_to_clinics_clean[i]) : 0.0)
+    push!(diffs_CSC_NSC, 
+          (csc_reachable[i] && nsc_reachable[i]) ? abs(time_to_CSCs_clean[i] - time_to_nscs_clean[i]) : 0.0)
+    push!(diffs_PSC_NSC, 
+          (psc_reachable[i] && nsc_reachable[i]) ? abs(time_to_PSCs_clean[i] - time_to_nscs_clean[i]) : 0.0)
     
     # Ratios: only meaningful when denominator hospital is reachable
     push!(ratios_CSC_PSC, 
           (csc_reachable[i] && psc_reachable[i] && time_to_PSCs_clean[i] > 0) ? time_to_CSCs_clean[i] / time_to_PSCs_clean[i] : 1.0)
-    push!(ratios_CSC_Clinic, 
-          (csc_reachable[i] && clinic_reachable[i] && time_to_clinics_clean[i] > 0) ? time_to_CSCs_clean[i] / time_to_clinics_clean[i] : 1.0)
-    push!(ratios_PSC_Clinic, 
-          (psc_reachable[i] && clinic_reachable[i] && time_to_clinics_clean[i] > 0) ? time_to_PSCs_clean[i] / time_to_clinics_clean[i] : 1.0)
+    push!(ratios_CSC_NSC, 
+          (csc_reachable[i] && nsc_reachable[i] && time_to_nscs_clean[i] > 0) ? time_to_CSCs_clean[i] / time_to_nscs_clean[i] : 1.0)
+    push!(ratios_PSC_NSC, 
+          (psc_reachable[i] && nsc_reachable[i] && time_to_nscs_clean[i] > 0) ? time_to_PSCs_clean[i] / time_to_nscs_clean[i] : 1.0)
 end
 
 # OPTION 1: Include reachability as explicit boolean features
@@ -455,38 +455,38 @@ INCLUDE_REACHABILITY_FLAGS = true  # NEW: Toggle for boolean features
 if USE_EXTENDED_FEATURES && INCLUDE_REACHABILITY_FLAGS
     println("Using extended feature set with reachability flags...")
     features = hcat(
-        time_to_CSCs_clean, time_to_PSCs_clean, time_to_clinics_clean, t_onsets,
-        Float64.(csc_reachable), Float64.(psc_reachable), Float64.(clinic_reachable),  # Convert Bool to Float64
-        diffs_CSC_PSC, diffs_CSC_Clinic, diffs_PSC_Clinic, 
-        ratios_CSC_PSC, ratios_CSC_Clinic, ratios_PSC_Clinic
+        time_to_CSCs_clean, time_to_PSCs_clean, time_to_nscs_clean, t_onsets,
+        Float64.(csc_reachable), Float64.(psc_reachable), Float64.(nsc_reachable),  # Convert Bool to Float64
+        diffs_CSC_PSC, diffs_CSC_NSC, diffs_PSC_NSC, 
+        ratios_CSC_PSC, ratios_CSC_NSC, ratios_PSC_NSC
     )
     feature_names = [
-        "Time to CSC", "Time to PSC", "Time to Clinic", "Time since onset",
-        "CSC Reachable", "PSC Reachable", "Clinic Reachable",  # NEW: Clear boolean features
-        "Diff CSC-PSC", "Diff CSC-Clinic", "Diff PSC-Clinic",
-        "Ratio CSC/PSC", "Ratio CSC/Clinic", "Ratio PSC/Clinic"
+        "Time to CSC", "Time to PSC", "Time to NSC", "Time since onset",
+        "CSC Reachable", "PSC Reachable", "NSC Reachable",  # NEW: Clear boolean features
+        "Diff CSC-PSC", "Diff CSC-NSC", "Diff PSC-NSC",
+        "Ratio CSC/PSC", "Ratio CSC/NSC", "Ratio PSC/NSC"
     ]
 elseif USE_EXTENDED_FEATURES
     println("Using extended feature set without explicit reachability flags...")
     features = hcat(
-        time_to_CSCs_clean, time_to_PSCs_clean, time_to_clinics_clean, t_onsets, 
-        diffs_CSC_PSC, diffs_CSC_Clinic, diffs_PSC_Clinic, 
-        ratios_CSC_PSC, ratios_CSC_Clinic, ratios_PSC_Clinic
+        time_to_CSCs_clean, time_to_PSCs_clean, time_to_nscs_clean, t_onsets, 
+        diffs_CSC_PSC, diffs_CSC_NSC, diffs_PSC_NSC, 
+        ratios_CSC_PSC, ratios_CSC_NSC, ratios_PSC_NSC
     )
     feature_names = [
-        "Time to CSC", "Time to PSC", "Time to Clinic", "Time since onset",
-        "Diff CSC-PSC", "Diff CSC-Clinic", "Diff PSC-Clinic",
-        "Ratio CSC/PSC", "Ratio CSC/Clinic", "Ratio PSC/Clinic"
+        "Time to CSC", "Time to PSC", "Time to NSC", "Time since onset",
+        "Diff CSC-PSC", "Diff CSC-NSC", "Diff PSC-NSC",
+        "Ratio CSC/PSC", "Ratio CSC/NSC", "Ratio PSC/NSC"
     ]
 else
     println("Using basic feature set with reachability flags...")
     features = hcat(
-        time_to_CSCs_clean, time_to_PSCs_clean, time_to_clinics_clean, t_onsets,
-        Float64.(csc_reachable), Float64.(psc_reachable), Float64.(clinic_reachable)
+        time_to_CSCs_clean, time_to_PSCs_clean, time_to_nscs_clean, t_onsets,
+        Float64.(csc_reachable), Float64.(psc_reachable), Float64.(nsc_reachable)
     )
     feature_names = [
-        "Time to CSC", "Time to PSC", "Time to Clinic", "Time since onset",
-        "CSC Reachable", "PSC Reachable", "Clinic Reachable"
+        "Time to CSC", "Time to PSC", "Time to NSC", "Time since onset",
+        "CSC Reachable", "PSC Reachable", "NSC Reachable"
     ]
 end
 
@@ -517,7 +517,7 @@ end
 println("="^60)
 
 # Define and print action labels (output classes)
-action_labels = ["Route_CSC", "Route_PSC", "Route_Clinic"]
+action_labels = ["Route_CSC", "Route_PSC", "Route_NSC"]
 println("\nACTION LABELS:")
 for (i, action) in enumerate(action_labels)
     println("Label $i: $action")
@@ -597,7 +597,7 @@ end
 println("Saving comprehensive training data with reachability info...")
 
 # Define action labels first (moved from later in original code)
-action_labels = ["Route_CSC", "Route_PSC", "Route_Clinic"]
+action_labels = ["Route_CSC", "Route_PSC", "Route_NSC"]
 
 # Create enhanced training DataFrame
 sample_ids = collect(1:N_SAMPLES)
@@ -606,11 +606,11 @@ training_df = DataFrame(
     Sample_ID = sample_ids,
     Time_to_CSC_min = round.(time_to_CSCs_clean, digits=2),
     Time_to_PSC_min = round.(time_to_PSCs_clean, digits=2),
-    Time_to_Clinic_min = round.(time_to_clinics_clean, digits=2),
+    Time_to_NSC_min = round.(time_to_nscs_clean, digits=2),
     Time_since_onset_min = round.(t_onsets, digits=2),
     CSC_Reachable = csc_reachable,  # NEW: Include reachability info in export
     PSC_Reachable = psc_reachable,
-    Clinic_Reachable = clinic_reachable,
+    NSC_Reachable = nsc_reachable,
     Predicted_Label = labels,
     Predicted_Action = [action_labels[l] for l in labels]
 )
@@ -618,11 +618,11 @@ training_df = DataFrame(
 # Add extended features if used
 if USE_EXTENDED_FEATURES
     training_df.Diff_CSC_PSC = round.(diffs_CSC_PSC, digits=2)
-    training_df.Diff_CSC_Clinic = round.(diffs_CSC_Clinic, digits=2)
-    training_df.Diff_PSC_Clinic = round.(diffs_PSC_Clinic, digits=2)
+    training_df.Diff_CSC_NSC = round.(diffs_CSC_NSC, digits=2)
+    training_df.Diff_PSC_NSC = round.(diffs_PSC_NSC, digits=2)
     training_df.Ratio_CSC_PSC = round.(ratios_CSC_PSC, digits=3)
-    training_df.Ratio_CSC_Clinic = round.(ratios_CSC_Clinic, digits=3)
-    training_df.Ratio_PSC_Clinic = round.(ratios_PSC_Clinic, digits=3)
+    training_df.Ratio_CSC_NSC = round.(ratios_CSC_NSC, digits=3)
+    training_df.Ratio_PSC_NSC = round.(ratios_PSC_NSC, digits=3)
 end
 
 # Enhanced analysis: identify truly fastest reachable hospital
@@ -638,9 +638,9 @@ training_df.Fastest_Reachable_Hospital = map(1:N_SAMPLES) do i
         push!(reachable_times, time_to_PSCs_clean[i])
         push!(reachable_hospitals, "PSC")
     end
-    if clinic_reachable[i]
-        push!(reachable_times, time_to_clinics_clean[i])
-        push!(reachable_hospitals, "Clinic")
+    if nsc_reachable[i]
+        push!(reachable_times, time_to_nscs_clean[i])
+        push!(reachable_hospitals, "NSC")
     end
     
     if !isempty(reachable_times)
@@ -660,22 +660,22 @@ println("✓ Enhanced training data with reachability saved as training_data_det
 # Remove missing values from time arrays for summary stats
 clean_time_to_CSCs = [t for (t, r) in zip(time_to_CSCs_clean, csc_reachable) if r]
 clean_time_to_PSCs = [t for (t, r) in zip(time_to_PSCs_clean, psc_reachable) if r]
-clean_time_to_clinics = [t for (t, r) in zip(time_to_clinics_clean, clinic_reachable) if r]
+clean_time_to_nscs = [t for (t, r) in zip(time_to_nscs_clean, nsc_reachable) if r]
 
 # Export summary stats for quick sanity checks
 summary_stats = DataFrame(
-    Metric = ["Total Samples", "Failed Attempts", "Route to CSC", "Route to PSC", "Route to Clinic", 
-              "Avg Time to CSC", "Avg Time to PSC", "Avg Time to Clinic", 
+    Metric = ["Total Samples", "Failed Attempts", "Route to CSC", "Route to PSC", "Route to NSC", 
+              "Avg Time to CSC", "Avg Time to PSC", "Avg Time to NSC", 
               "Avg Onset Time", "Decision Matches Fastest", "Decision Different from Fastest"],
     Value = [
         N_SAMPLES,
         failed_attempts,
         sum(training_df.Predicted_Action .== "Route_CSC"),
         sum(training_df.Predicted_Action .== "Route_PSC"), 
-        sum(training_df.Predicted_Action .== "Route_Clinic"),
+        sum(training_df.Predicted_Action .== "Route_NSC"),
         round(mean(clean_time_to_CSCs), digits=2),
         round(mean(clean_time_to_PSCs), digits=2),
-        round(mean(clean_time_to_clinics), digits=2),
+        round(mean(clean_time_to_nscs), digits=2),
         round(mean(t_onsets), digits=2),
         sum(training_df.Decision_Matches_Fastest_Reachable),
         sum(.!training_df.Decision_Matches_Fastest_Reachable)

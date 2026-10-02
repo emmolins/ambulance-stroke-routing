@@ -1,62 +1,62 @@
-Hospital,City,Lat,Lon,Performance Metric,Type,DisplayName
-SutterEdenMedicalCenter,Castro Valley,37.69808,-122.08927,60,CSC,Sutter Eden Medical Center
-AlamedaHospital,Alameda,37.76273,-122.25391,60,PSC,Alameda Hospital
-AltaBatesSummitMedicalCenterAltaBatesCampus,Berkeley,37.85547,-122.25722,60,PSC,Alta Bates Summit Medical Center – Alta Bates Campus
-AltaBatesSummitMedicalCenterSummitCampus,Oakland,37.82106,-122.26209,60,PSC,Alta Bates Summit Medical Center – Summit Campus
-HighlandHospitalWilmaChanCampus,Oakland,37.79822,-122.23144,60,PSC,Highland Hospital (Wilma Chan Campus)
-KaiserFoundationHospitalFremont,Fremont,37.55207,-121.97303,60,PSC,Kaiser Foundation Hospital – Fremont
-KaiserFoundationHospitalOaklandRichmond,Oakland,37.82354,-122.25902,60,PSC,Kaiser Foundation Hospital – Oakland/Richmond
-KaiserFoundationHospitalSanLeandro,San Leandro,37.70602,-122.16515,60,PSC,Kaiser Foundation Hospital – San Leandro
-StanfordHealthCareTriValley,Pleasanton,37.69354,-121.8803,60,PSC,Stanford Health Care Tri-Valley
-WashingtonHospitalHealthcareSystem,Fremont,37.55718,-121.97928,60,PSC,Washington Hospital Healthcare System
-SanLeandroHospitalAlamedaHealthSystem,San Leandro,37.71447,-122.14187,60,CLINIC,San Leandro Hospital (Alameda Health System)
-StRoseHospital,Hayward,37.6332,-122.0879,60,CLINIC,St. Rose Hospital
-JohnMuirMedicalCenterWalnutCreekCampus,Walnut Creek,37.91509,-122.04158,60,CSC,John Muir Medical Center – Walnut Creek Campus
-JohnMuirMedicalCenterConcordCampus,Concord,37.98258,-122.03378,60,PSC,John Muir Medical Center – Concord Campus
-KaiserFoundationHospitalAntioch,Antioch,37.95096,-121.77486,60,PSC,Kaiser Foundation Hospital – Antioch
-KaiserFoundationHospitalRichmondCampus,Richmond,37.93733,-122.36097,60,PSC,Kaiser Foundation Hospital – Richmond Campus
-KaiserFoundationHospitalWalnutCreek,Walnut Creek,37.8919,-122.0598,60,PSC,Kaiser Foundation Hospital – Walnut Creek
-SanRamonRegionalMedicalCenter,San Ramon,37.77643,-121.95878,60,PSC,San Ramon Regional Medical Center
-ContraCostaRegionalMedicalCenter,Martinez,38.00799,-122.13138,60,CLINIC,Contra Costa Regional Medical Center
-SutterDeltaMedicalCenter,Antioch,37.98274,-121.8031,60,CLINIC,Sutter Delta Medical Center
-KaiserFoundationHospitalSanRafael,San Rafael,38.00467,-122.55511,60,PSC,Kaiser Foundation Hospital – San Rafael
-MarinHealthMedicalCenter,Greenbrae,37.94756,-122.5359,60,PSC,MarinHealth Medical Center
-NovatoCommunityHospitalSutter,Novato,38.09925,-122.56013,60,PSC,Novato Community Hospital (Sutter)
-AdventistHealthStHelena,St. Helena,38.54207,-122.47441,60,PSC,Adventist Health St. Helena
-ProvidenceQueenOfTheValleyMedicalCenter,Napa,38.32538,-122.29673,60,PSC,Providence Queen of the Valley Medical Center
-UCSFMedicalCenter,San Francisco,37.76307,-122.4574,60,CSC,UCSF Medical Center
-CPMCDaviesCampusSutter,San Francisco,37.76867,-122.4346,60,PSC,CPMC – Davies Campus (Sutter)
-CPMCVanNessCampusSutter,San Francisco,37.78598,-122.42235,60,PSC,CPMC – Van Ness Campus (Sutter)
-ChineseHospital,San Francisco,37.79548,-122.409,60,PSC,Chinese Hospital
-KaiserFoundationHospitalSanFrancisco,San Francisco,37.78268,-122.44309,60,PSC,Kaiser Foundation Hospital – San Francisco
-UCSFHealthHydeHospital,San Francisco,37.78964,-122.41654,60,PSC,UCSF Health Hyde Hospital
-UCSFHealthStanyanHospital,San Francisco,37.77377,-122.45361,60,PSC,UCSF Health Stanyan Hospital
-ZuckerbergSanFranciscoGeneralHospital,San Francisco,37.75681,-122.40525,60,PSC,Zuckerberg San Francisco General Hospital
-KaiserFoundationHospitalRedwoodCity,Redwood City,37.48932,-122.22348,60,CSC,Kaiser Foundation Hospital – Redwood City
-MillsPeninsulaMedicalCenterSutter,Burlingame,37.59416,-122.38305,60,CSC,Mills-Peninsula Medical Center (Sutter)
-AHMCSetonMedicalCenter,Daly City,37.67962,-122.47429,60,PSC,AHMC Seton Medical Center
-KaiserFoundationHospitalSouthSanFrancisco,South San Francisco,37.65965,-122.43986,60,PSC,Kaiser Foundation Hospital – South San Francisco
-SequoiaHospital,Redwood City,37.47951,-122.25502,60,PSC,Sequoia Hospital
-SanMateoMedicalCenter,San Mateo,37.5309,-122.30021,60,CLINIC,San Mateo Medical Center
-ElCaminoHealthMountainView,Mountain View,37.36823,-122.07984,60,CSC,El Camino Health – Mountain View
-GoodSamaritanHospital,San Jose,37.2523,-121.94571,60,CSC,Good Samaritan Hospital
-KaiserFoundationHospitalSantaClara,Santa Clara,37.33591,-121.99903,60,CSC,Kaiser Foundation Hospital – Santa Clara
-RegionalMedicalCenterOfSanJose,San Jose,37.36213,-121.84937,60,CSC,Regional Medical Center of San Jose
-StanfordHealthCare,Palo Alto,37.43441,-122.17489,60,CSC,Stanford Health Care
-ElCaminoHealthLosGatos,Los Gatos,37.26281,-121.96963,60,PSC,El Camino Health – Los Gatos
-KaiserFoundationHospitalSanJose,San Jose,37.24007,-121.80088,60,PSC,Kaiser Foundation Hospital – San Jose
-OConnorHospital,San Jose,37.32718,-121.93808,60,PSC,O'Connor Hospital
-SantaClaraValleyMedicalCenter,San Jose,37.31519,-121.93329,60,PSC,Santa Clara Valley Medical Center
-StLouiseRegionalHospital,Gilroy,37.03656,-121.57178,60,PSC,St. Louise Regional Hospital
-KaiserFoundationHospitalVacaville,Vacaville,38.38817,-121.9381,60,PSC,Kaiser Foundation Hospital – Vacaville
-KaiserFoundationHospitalVallejo,Vallejo,38.12658,-122.24781,60,PSC,Kaiser Foundation Hospital – Vallejo
-NorthBayMedicalCenter,Fairfield,38.26213,-122.04778,60,PSC,NorthBay Medical Center
-NorthBayVacaValleyHospital,Vacaville,38.3547,-121.953,60,PSC,NorthBay VacaValley Hospital
-SutterSolanoMedicalCenter,Vallejo,38.13114,-122.2384,60,PSC,Sutter Solano Medical Center
-HealdsburgHospitalProvidence,Healdsburg,38.62729,-122.86488,60,PSC,Healdsburg Hospital (Providence)
-KaiserFoundationHospitalSantaRosa,Santa Rosa,38.47181,-122.72719,60,PSC,Kaiser Foundation Hospital – Santa Rosa
-PetalumaValleyHospitalProvidence,Petaluma,38.25457,-122.63187,60,PSC,Petaluma Valley Hospital (Providence)
-ProvidenceSantaRosaMemorialHospital,Santa Rosa,38.4438,-122.70088,60,PSC,Providence Santa Rosa Memorial Hospital
-SonomaValleyHospital,Sonoma,38.28808,-122.46536,60,PSC,Sonoma Valley Hospital
-SutterSantaRosaRegionalHospital,Santa Rosa,38.49459,-122.7519,60,PSC,Sutter Santa Rosa Regional Hospital
-CPMCMissionBernalCampusSutter,San Francisco,37.74753,-122.42156,60,CLINIC,CPMC – Mission Bernal Campus (Sutter)
+Hospital,City,Lat,Lon,Performance Metric,Type,CertLevel,EVTOnSite,DisplayName
+SutterEdenMedicalCenter,Castro Valley,37.69808,-122.08927,60,CSC,TJC CSC,yes,Sutter Eden Medical Center
+AlamedaHospital,Alameda,37.76273,-122.25391,60,PSC,PSC,no,Alameda Hospital
+AltaBatesSummitMedicalCenterAltaBatesCampus,Berkeley,37.85547,-122.25722,60,NSC,none (LEMSA: basic ED),no,Alta Bates Summit Medical Center – Alta Bates Campus
+AltaBatesSummitMedicalCenterSummitCampus,Oakland,37.82106,-122.26209,60,PSC,TJC PSC; neurointerventional (uncertified),yes,Alta Bates Summit Medical Center – Summit Campus
+HighlandHospitalWilmaChanCampus,Oakland,37.79822,-122.23144,60,PSC,TJC stroke cert May 2025 (level unstated),no,Wilma Chan Highland Hospital Campus
+KaiserFoundationHospitalFremont,Fremont,37.55207,-121.97303,60,PSC,PSC,no,Kaiser Foundation Hospital – Fremont
+KaiserFoundationHospitalOaklandRichmond,Oakland,37.82354,-122.25902,60,PSC,PSC,no,Kaiser Foundation Hospital – Oakland/Richmond
+KaiserFoundationHospitalSanLeandro,San Leandro,37.70602,-122.16515,60,PSC,PSC,no,Kaiser Foundation Hospital – San Leandro
+StanfordHealthCareTriValley,Pleasanton,37.69354,-121.8803,60,PSC,PSC,no,Stanford Health Care Tri-Valley
+WashingtonHospitalHealthcareSystem,Fremont,37.55718,-121.97928,60,PSC,TJC Advanced PSC; EVT on site (uncertified),yes,Washington Health (Washington Hospital)
+SanLeandroHospitalAlamedaHealthSystem,San Leandro,37.71447,-122.14187,60,NSC,none,no,San Leandro Hospital (Alameda Health System)
+StRoseHospital,Hayward,37.6332,-122.0879,60,NSC,none,no,St. Rose Hospital
+JohnMuirMedicalCenterWalnutCreekCampus,Walnut Creek,37.91509,-122.04158,60,CSC,TJC CSC,yes,John Muir Medical Center – Walnut Creek Campus
+JohnMuirMedicalCenterConcordCampus,Concord,37.98258,-122.03378,60,PSC,PSC,no,John Muir Medical Center – Concord Campus
+KaiserFoundationHospitalAntioch,Antioch,37.95096,-121.77486,60,PSC,PSC,no,Kaiser Foundation Hospital – Antioch
+KaiserFoundationHospitalRichmondCampus,Richmond,37.93733,-122.36097,60,PSC,PSC,no,Kaiser Foundation Hospital – Richmond Campus
+KaiserFoundationHospitalWalnutCreek,Walnut Creek,37.8919,-122.0598,60,PSC,PSC,no,Kaiser Foundation Hospital – Walnut Creek
+SanRamonRegionalMedicalCenter,San Ramon,37.77643,-121.95878,60,PSC,PSC,no,San Ramon Regional Medical Center
+ContraCostaRegionalMedicalCenter,Martinez,38.00799,-122.13138,60,NSC,none,no,Contra Costa Regional Medical Center
+SutterDeltaMedicalCenter,Antioch,37.98274,-121.8031,60,NSC,none,no,Sutter Delta Medical Center
+KaiserFoundationHospitalSanRafael,San Rafael,38.00467,-122.55511,60,PSC,PSC,no,Kaiser Foundation Hospital – San Rafael
+MarinHealthMedicalCenter,Greenbrae,37.94756,-122.5359,60,PSC,PSC,no,MarinHealth Medical Center
+NovatoCommunityHospitalSutter,Novato,38.09925,-122.56013,60,PSC,PSC,no,Novato Community Hospital (Sutter)
+AdventistHealthStHelena,St. Helena,38.54207,-122.47441,60,PSC,PSC,no,Adventist Health St. Helena
+ProvidenceQueenOfTheValleyMedicalCenter,Napa,38.32538,-122.29673,60,PSC,PSC,no,Providence Queen of the Valley Medical Center
+UCSFMedicalCenter,San Francisco,37.76307,-122.4574,60,CSC,TJC CSC,yes,UCSF Medical Center
+CPMCDaviesCampusSutter,San Francisco,37.76867,-122.4346,60,CSC,TJC CSC (Jun 2026),yes,CPMC – Davies Campus (Sutter)
+CPMCVanNessCampusSutter,San Francisco,37.78598,-122.42235,60,PSC,TJC PSC; EVT on site (uncertified),yes,CPMC – Van Ness Campus (Sutter)
+ChineseHospital,San Francisco,37.79548,-122.409,60,PSC,PSC,no,Chinese Hospital
+KaiserFoundationHospitalSanFrancisco,San Francisco,37.78268,-122.44309,60,PSC,PSC,no,Kaiser Foundation Hospital – San Francisco
+UCSFHealthHydeHospital,San Francisco,37.78964,-122.41654,60,PSC,PSC (unverified since Oct 2025 rename),no,UCSF Health Hyde Hospital
+UCSFHealthStanyanHospital,San Francisco,37.77377,-122.45361,60,PSC,PSC (unverified since Oct 2025 rename),no,UCSF Health Stanyan Hospital
+ZuckerbergSanFranciscoGeneralHospital,San Francisco,37.75681,-122.40525,60,PSC,TJC PSC; EVT on site (uncertified),yes,Zuckerberg San Francisco General Hospital
+KaiserFoundationHospitalRedwoodCity,Redwood City,37.48932,-122.22348,60,CSC,TJC CSC,yes,Kaiser Foundation Hospital – Redwood City
+MillsPeninsulaMedicalCenterSutter,Burlingame,37.59416,-122.38305,60,CSC,TJC TSC,yes,Mills-Peninsula Medical Center (Sutter)
+AHMCSetonMedicalCenter,Daly City,37.67962,-122.47429,60,PSC,TJC PSC (self-reported; current status unverified),no,AHMC Seton Medical Center
+KaiserFoundationHospitalSouthSanFrancisco,South San Francisco,37.65965,-122.43986,60,PSC,PSC,no,Kaiser Foundation Hospital – South San Francisco
+SequoiaHospital,Redwood City,37.47951,-122.25502,60,PSC,PSC,no,Sequoia Hospital
+SanMateoMedicalCenter,San Mateo,37.5309,-122.30021,60,NSC,none,no,San Mateo Medical Center
+ElCaminoHealthMountainView,Mountain View,37.36823,-122.07984,60,CSC,TSC (strokeinfo/PSA; SCC EMS CSC),yes,El Camino Health – Mountain View
+GoodSamaritanHospital,San Jose,37.2523,-121.94571,60,CSC,DNV CSC,yes,Good Samaritan Hospital
+KaiserFoundationHospitalSantaClara,Santa Clara,37.33591,-121.99903,60,CSC,TSC (unverified; SCC EMS CSC),yes,Kaiser Foundation Hospital – Santa Clara
+RegionalMedicalCenterOfSanJose,San Jose,37.36213,-121.84937,60,CSC,TSC,yes,Regional Medical Center of San Jose
+StanfordHealthCare,Palo Alto,37.43441,-122.17489,60,CSC,TJC CSC,yes,Stanford Health Care
+ElCaminoHealthLosGatos,Los Gatos,37.26281,-121.96963,60,PSC,PSC,no,El Camino Health – Los Gatos
+KaiserFoundationHospitalSanJose,San Jose,37.24007,-121.80088,60,PSC,PSC,no,Kaiser Foundation Hospital – San Jose
+OConnorHospital,San Jose,37.32718,-121.93808,60,PSC,PSC,no,O'Connor Hospital
+SantaClaraValleyMedicalCenter,San Jose,37.31519,-121.93329,60,PSC,PSC,no,Santa Clara Valley Medical Center
+StLouiseRegionalHospital,Gilroy,37.03656,-121.57178,60,PSC,PSC,no,St. Louise Regional Hospital
+KaiserFoundationHospitalVacaville,Vacaville,38.38817,-121.9381,60,PSC,PSC,no,Kaiser Foundation Hospital – Vacaville
+KaiserFoundationHospitalVallejo,Vallejo,38.12658,-122.24781,60,PSC,PSC,no,Kaiser Foundation Hospital – Vallejo
+NorthBayMedicalCenter,Fairfield,38.26213,-122.04778,60,PSC,PSC,no,NorthBay Medical Center
+NorthBayVacaValleyHospital,Vacaville,38.3547,-121.953,60,PSC,PSC,no,NorthBay VacaValley Hospital
+SutterSolanoMedicalCenter,Vallejo,38.13114,-122.2384,60,PSC,PSC,no,Sutter Solano Medical Center
+HealdsburgHospitalProvidence,Healdsburg,38.62729,-122.86488,60,PSC,PSC,no,Providence Healdsburg Hospital
+KaiserFoundationHospitalSantaRosa,Santa Rosa,38.47181,-122.72719,60,PSC,PSC,no,Kaiser Foundation Hospital – Santa Rosa
+PetalumaValleyHospitalProvidence,Petaluma,38.25457,-122.63187,60,PSC,PSC,no,Petaluma Valley Hospital (Providence)
+ProvidenceSantaRosaMemorialHospital,Santa Rosa,38.4438,-122.70088,60,PSC,PSC,no,Providence Santa Rosa Memorial Hospital
+SonomaValleyHospital,Sonoma,38.28808,-122.46536,60,PSC,ASRH (CIHQ),no,Sonoma Valley Hospital
+SutterSantaRosaRegionalHospital,Santa Rosa,38.49459,-122.7519,60,PSC,PSC,no,Sutter Santa Rosa Regional Hospital
+CPMCMissionBernalCampusSutter,San Francisco,37.74753,-122.42156,60,PSC,TJC PSC (2026),no,CPMC – Mission Bernal Campus (Sutter)

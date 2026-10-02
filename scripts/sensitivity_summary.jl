@@ -14,7 +14,8 @@
 # headline policy differences are robust to plausible travel-time mis-modelling.
 #
 # Input files (any subset present — script reports what it finds):
-#   simulation_results/CA_simulation_results.csv                      (baseline)
+#   simulation_results/CA_simulation_results_realized.csv             (baseline; realized rewards,
+#                                                                      same definition as the perturbed rows)
 #   simulation_results/CA_simulation_results_noise10.csv              (10% noise)
 #   simulation_results/CA_simulation_results_noise20.csv              (20% noise)
 #   simulation_results/CA_simulation_results_bias90.csv               (×0.90 bias)
@@ -64,8 +65,21 @@ function find_sensitivity_files(dir)
         m === nothing && continue
         noise_pct = m.captures[2] === nothing ? 0   : parse(Int, m.captures[2])
         bias_pct  = m.captures[4] === nothing ? 100 : parse(Int, m.captures[4])
-        push!(out, (noise_pct = noise_pct, bias_pct = bias_pct,
-                    path = joinpath(dir, f)))
+        path = joinpath(dir, f)
+        if noise_pct == 0 && bias_pct == 100
+            # The perturbed files hold REALIZED rewards (recompute_perturbed_rewards.jl
+            # evaluates the KNOWN-type branch). The baseline row must use the same
+            # reward definition, i.e. CA_simulation_results_realized.csv, not the
+            # marginalised rewards in CA_simulation_results.csv.
+            realized = joinpath(dir, "CA_simulation_results_realized.csv")
+            if isfile(realized)
+                path = realized
+            else
+                @warn "Baseline skipped: $(basename(realized)) not found. Run scripts/recompute_realized_rewards.jl first; the marginalised baseline is not comparable with the perturbed (realized) rows."
+                continue
+            end
+        end
+        push!(out, (noise_pct = noise_pct, bias_pct = bias_pct, path = path))
     end
     # Sort: baseline first; then noise-only; then bias-only; then combined.
     sort!(out; by = r -> (r.noise_pct > 0 && r.bias_pct != 100,  # combined last

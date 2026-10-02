@@ -202,6 +202,7 @@ skipped_existing = 0
 skipped_dropped = 0
 
 for r in 1:n_to_process
+    global written, skipped_existing, skipped_dropped
     cell = cells[r, :]
     out_path = joinpath(OUT_DIR, "cell_$(cell.cell_i)_$(cell.cell_j).csv")
 

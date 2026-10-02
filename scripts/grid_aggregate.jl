@@ -42,6 +42,7 @@ isempty(files) && error("No cell_*.csv files found.")
 pooled = DataFrame()
 n_empty = 0
 for f in files
+    global pooled, n_empty
     path = joinpath(IN_DIR, f)
     # Empty sentinel files (zero bytes) mark cells where the probe said
     # routable but all sample attempts dropped; skip them.
@@ -84,7 +85,32 @@ cell_mean.diff_opt_minus_heur2   = cell_mean.reward_optimal .- cell_mean.reward_
 cell_mean.diff_heur1_minus_nearest = cell_mean.reward_heur1 .- cell_mean.reward_nearest
 cell_mean.diff_heur2_minus_nearest = cell_mean.reward_heur2 .- cell_mean.reward_nearest
 
+# Relative improvement per cell (the "up to X% increase in likelihood of a good
+# outcome" statistic quoted in the paper). Written to a CSV so the number is
+# reproducible rather than read off the map.
+cell_mean.rel_opt_vs_nearest   = cell_mean.diff_opt_minus_nearest   ./ cell_mean.reward_nearest
+cell_mean.rel_heur1_vs_nearest = cell_mean.diff_heur1_minus_nearest ./ cell_mean.reward_nearest
+cell_mean.rel_opt_vs_heur1     = cell_mean.diff_opt_minus_heur1     ./ cell_mean.reward_heur1
+
 CSV.write(CELL_MEAN_CSV, cell_mean)
+
+function rel_summary(label, v)
+    q = quantile(v, [0.5, 0.9, 0.95])
+    (comparison = label, n_cells = length(v),
+     median_pct = 100q[1], p90_pct = 100q[2], p95_pct = 100q[3],
+     max_pct = 100maximum(v),
+     cells_over_10pct = count(>=(0.10), v), cells_over_25pct = count(>=(0.25), v),
+     cells_over_50pct = count(>=(0.50), v))
+end
+hotspot = DataFrame([
+    rel_summary("MDP optimal vs Nearest",    cell_mean.rel_opt_vs_nearest),
+    rel_summary("Heuristic 1 vs Nearest",    cell_mean.rel_heur1_vs_nearest),
+    rel_summary("MDP optimal vs Heuristic 1", cell_mean.rel_opt_vs_heur1),
+])
+HOTSPOT_CSV = joinpath(dirname(CELL_MEAN_CSV), "CA_grid_hotspot_summary.csv")
+CSV.write(HOTSPOT_CSV, hotspot)
+println("  ✓ Wrote $HOTSPOT_CSV")
+show(hotspot, allcols = true); println()
 println("  ✓ Wrote $CELL_MEAN_CSV  ($(nrow(cell_mean)) cells × $(ncol(cell_mean)) cols)")
 println()
 
