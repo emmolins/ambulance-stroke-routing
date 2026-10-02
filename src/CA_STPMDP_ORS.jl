@@ -173,6 +173,14 @@ const DTP_DIRECT   = parse(Float64, get(ENV, "DTP_MIN",          "90"))   # door
 const DTP_TRANSFER = parse(Float64, get(ENV, "DTP_TRANSFER_MIN", "60"))   # door to puncture, transferred in
 const DIDO         = parse(Float64, get(ENV, "DIDO_MIN",         "121"))  # door in, door out
 
+# Lexicographic tie-break in the planner: maximise expected outcome, and among
+# destinations with (numerically) equal expected outcome prefer the shorter
+# journey. 1e-7 per minute is three orders of magnitude below the smallest
+# outcome difference a minute of delay produces (~2e-4), so it never
+# overrides an outcome difference. Applied in the search only, not to the
+# recorded reward.
+const TRAVEL_TIEBREAK = parse(Float64, get(ENV, "TRAVEL_TIEBREAK", "1e-7"))
+
 function csv_to_locations(file)
     df = CSV.read(file, DataFrame, delim=',')
     locs = []
@@ -692,7 +700,7 @@ function forward_search(m::StrokeMDP, s::PatientState, depth::Int)
             forward_search(m, sp, depth - 1)
         end
 
-        value = r + discount(m) * future
+        value = r + discount(m) * future - TRAVEL_TIEBREAK * (sp.t_onset - s.t_onset)
         best_value = max(best_value, value)
     end
 
@@ -729,7 +737,7 @@ function best_action(m::StrokeMDP, s::PatientState, depth::Int)
             forward_search(m, sp, depth - 1)
         end
 
-        value = r + discount(m) * future
+        value = r + discount(m) * future - TRAVEL_TIEBREAK * (sp.t_onset - s.t_onset)
         if value > best_value
             best_value = value
             best_act = a

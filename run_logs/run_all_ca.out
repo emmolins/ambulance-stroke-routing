@@ -1,53 +1,20 @@
-[16:15] step 1: tree_build  -> run_logs/ca_01_tree_build.log
-[ok]   step 1: tree_build
-[16:15] step 2: replicates  -> run_logs/ca_02_replicates.log
-[ok]   step 2: replicates
-[16:17] step 3: aggregate  -> run_logs/ca_03_aggregate.log
-[ok]   step 3: aggregate
-[16:17] step 4: realized  -> run_logs/ca_04_realized.log
-[ok]   step 4: realized
-[16:17] step 5: stats_marginal  -> run_logs/ca_05_stats_marginal.log
-[ok]   step 5: stats_marginal
-[16:17] step 6: stats_realized  -> run_logs/ca_06_stats_realized.log
-[ok]   step 6: stats_realized
-[16:17] step 7: perturb_noise10  -> run_logs/ca_07_perturb_noise10.log
-[ok]   step 7: perturb_noise10
-[16:17] step 8: perturb_noise20  -> run_logs/ca_08_perturb_noise20.log
-[ok]   step 8: perturb_noise20
-[16:18] step 9: perturb_bias  -> run_logs/ca_09_perturb_bias.log
-[ok]   step 9: perturb_bias
-[16:19] step 10: aggregate_sens  -> run_logs/ca_10_aggregate_sens.log
-[ok]   step 10: aggregate_sens
-[16:19] step 11: sensitivity  -> run_logs/ca_11_sensitivity.log
-[ok]   step 11: sensitivity
-[16:19] step 12: dido_sens  -> run_logs/ca_12_dido_sens.log
-[ok]   step 12: dido_sens
-[16:19] step 13: evt_onsite_reps  -> run_logs/ca_13_evt_onsite_reps.log
-[ok]   step 13: evt_onsite_reps
-[16:21] step 14: evt_onsite_pool  -> run_logs/ca_14_evt_onsite_pool.log
-[ok]   step 14: evt_onsite_pool
-[16:21] step 15: evt_onsite_stats  -> run_logs/ca_15_evt_onsite_stats.log
-[ok]   step 15: evt_onsite_stats
-[16:21] step 16: tree_sweep  -> run_logs/ca_16_tree_sweep.log
-[FAIL] step 16 (tree_sweep). Last lines:
-tree_depth_5              200     0.3796        0.0003 ± 0.00027 99.92%                11
-tree_depth_6              200     0.3796        0.00034 ± 0.0002799.91%                14
-tree_depth_8              200     0.3798        0.0001 ± 6.0e-5  99.97%                21
-tree_depth_10             200     0.3796        0.00032 ± 0.0002799.92%                22
-tree_depth_inf            200     0.3796        0.00032 ± 0.0002799.92%                22
-Nearest                   200     0.3558        0.02412 ± 0.0022393.65%                —
-Heuristic_1               200     0.3793        0.00067 ± 0.0001699.82%                —
-Heuristic_2               200     0.3601        0.01987 ± 0.0019994.77%                —
-
-✓ Wrote decision_tree_output/sweep_summary.csv
-✓ Wrote decision_tree_output/sweep_perpatient.csv
-
-Generating tradeoff plot ...
-✓ Wrote decision_tree_output/sweep_tradeoff.pdf
-
-==============================================================================
-RECOMMENDED DEPLOYABLE POLICY
-==============================================================================
-Smallest tree that recovers ≥ 99.0% of MDP-optimal expected outcome:
-  depth      = ∞
-Resume with:  START=16 ./run_all.sh ca
+[skip] 1 tree_build
+[skip] 2 replicates
+[skip] 3 aggregate
+[skip] 4 realized
+[skip] 5 stats_marginal
+[skip] 6 stats_realized
+[skip] 7 perturb_noise10
+[skip] 8 perturb_noise20
+[skip] 9 perturb_bias
+[skip] 10 aggregate_sens
+[skip] 11 sensitivity
+[skip] 12 dido_sens
+[skip] 13 evt_onsite_reps
+[skip] 14 evt_onsite_pool
+[skip] 15 evt_onsite_stats
+[16:48] step 16: tree_sweep  -> run_logs/ca_16_tree_sweep.log
+[ok]   step 16: tree_sweep
+[16:48] step 17: combine_paper  -> run_logs/ca_17_combine_paper.log
+[ok]   step 17: combine_paper
+[16:48] step 18: grid_generator  -> run_logs/ca_18_grid_generator.log
