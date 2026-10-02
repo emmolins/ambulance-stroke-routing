@@ -129,8 +129,10 @@ function perturbed_reward(mdp, row_idx, lat, lon, t_onset, realized_type,
     dest_idx === nothing && return NaN
     dest_loc = mdp.locations[dest_idx]
 
-    # Reconstruct sp using the PERTURBED first-leg time.
-    sp_t_onset = t_onset + dest_loc.performance_metric + t_perturbed
+    # Reconstruct sp using the PERTURBED first-leg time. Must mirror transition():
+    # from the field, arrival time = onset + travel (in-hospital intervals are
+    # applied inside reward()).
+    sp_t_onset = t_onset + t_perturbed
     sp = PatientState(dest_loc, sp_t_onset, KNOWN, realized_type)
 
     return reward(mdp, s, a, sp)

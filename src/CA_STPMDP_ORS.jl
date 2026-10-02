@@ -46,7 +46,7 @@ hospital_info_file = "hospitals/CA_hospitals.csv"
 mutable struct Location
     name::String  # i.e. "STANFORD"
     latlon::Tuple{Float64,Float64}  # Location of the hospital
-    performance_metric::Float64  # transfer time if NSC/PSC/CSC, -1 otherwise
+    performance_metric::Float64  # legacy CSV column; no longer used (see DTN/DTP/DIDO constants)
     type::LocType  # FIELD NSC PSC CSC
 end
 
@@ -159,6 +159,19 @@ end
 const EVT_DEFINITION = lowercase(get(ENV, "EVT_DEFINITION", "certified"))
 EVT_DEFINITION in ("certified", "onsite") ||
     error("EVT_DEFINITION must be 'certified' or 'onsite' (got '$EVT_DEFINITION')")
+
+# ---------------------------------------------------------------------------
+# In-hospital intervals (minutes). One value per interval for every hospital of
+# a type; overridable per run through environment variables for sensitivity
+# analysis. Defaults: Target: Stroke Phase III goals for DTN / DTP (45, 90 direct,
+# 60 transfer-in) and the GWTG-Stroke median door-in-door-out of Royan et al.,
+# Lancet Neurol 2026 (121 min, IQR 89-175). These replace the uniform 60 min
+# "Performance Metric" previously applied to every arrival and transfer.
+# ---------------------------------------------------------------------------
+const DTN          = parse(Float64, get(ENV, "DTN_MIN",          "45"))   # door to needle
+const DTP_DIRECT   = parse(Float64, get(ENV, "DTP_MIN",          "90"))   # door to puncture, direct arrival
+const DTP_TRANSFER = parse(Float64, get(ENV, "DTP_TRANSFER_MIN", "60"))   # door to puncture, transferred in
+const DIDO         = parse(Float64, get(ENV, "DIDO_MIN",         "121"))  # door in, door out
 
 function csv_to_locations(file)
     df = CSV.read(file, DataFrame, delim=',')
@@ -400,13 +413,15 @@ function POMDPs.transition(m::StrokeMDP, s::PatientState, a::Action)
         dest_loc = m.locations[index]
     end
 
-    # Update time with travel and treatment at destination.
-    treatment_time = dest_loc.performance_metric
+    # Update time: a transfer out of a hospital costs the door-in-door-out
+    # interval before departure; arrival itself costs nothing here, because the
+    # treatment intervals (DTN / DTP) are applied in reward().
+    dido = (a == STAY || cur_loc.type == FIELD) ? 0.0 : DIDO
     travel_time = calculate_travel_time(cur_loc, dest_loc)
     if travel_time === nothing
         return nothing
     end
-    t_onset = s.t_onset + treatment_time + travel_time
+    t_onset = s.t_onset + dido + travel_time
 
 
     # Stroke type becomes known after transfer.
@@ -430,20 +445,29 @@ function POMDPs.reward(m::StrokeMDP, s::PatientState, a::Action, sp::PatientStat
 
     # Calculate t_onset_needle and t_onset_puncture as in your original logic
     if sp.loc.type == CSC
-        t_onset_needle = sp.t_onset
-        t_onset_puncture = sp.t_onset
+        if s.loc.type == FIELD
+            # Direct arrival at an EVT-capable centre.
+            t_onset_needle   = sp.t_onset + DTN
+            t_onset_puncture = sp.t_onset + DTP_DIRECT
+        else
+            # Transferred in. Thrombolysis was given at the sending hospital if it
+            # was thrombolysis-capable; a transferred patient is pre-imaged, so the
+            # shorter transfer-in door-to-puncture applies.
+            t_onset_needle   = s.loc.type == NSC ? sp.t_onset + DTN : s.t_onset + DTN
+            t_onset_puncture = sp.t_onset + DTP_TRANSFER
+        end
     elseif sp.loc.type == PSC
         # Alteplase is given at the PSC itself, so needle time does not depend on
         # whether an onward CSC transfer exists. (Previously set only inside the
         # `else` below, leaving it undefined and crashing reward() for PSCs with
         # no CSC within the travel-time cutoff, e.g. Sonoma County.)
-        t_onset_needle = sp.t_onset
+        t_onset_needle = sp.t_onset + DTN
         nearest_CSC = find_nearest_CSC(m, sp.loc)
         if nearest_CSC === nothing
             csc_unreachable = true
         else
             time_to_CSC = cached_travel_time(m, sp.loc, nearest_CSC)
-            t_onset_puncture = sp.t_onset + time_to_CSC + nearest_CSC.performance_metric
+            t_onset_puncture = sp.t_onset + DIDO + time_to_CSC + DTP_TRANSFER
         end
     elseif sp.loc.type == NSC || sp.loc.type == FIELD
         # find nearest CSC; calculate time to CSC
@@ -452,15 +476,16 @@ function POMDPs.reward(m::StrokeMDP, s::PatientState, a::Action, sp::PatientStat
             csc_unreachable = true
         else
             time_to_CSC = cached_travel_time(m, sp.loc, nearest_CSC)
-            t_onset_puncture = sp.t_onset + time_to_CSC + nearest_CSC.performance_metric
+            t_onset_puncture = sp.t_onset + DIDO + time_to_CSC + DTP_TRANSFER
         end
-        # find nearest CSC or PSC; calculate time to CSC/PSC
+        # No thrombolysis on site at a non-stroke-center hospital: transfer to the
+        # nearest thrombolysis-capable centre for the needle as well.
         nearest_PSC_or_CSC = find_nearest_PSC_or_CSC(m, sp.loc)
         if nearest_PSC_or_CSC === nothing
             psc_unreachable = true
         else
             time_to_PSC_or_CSC = cached_travel_time(m, sp.loc, nearest_PSC_or_CSC)
-            t_onset_needle = sp.t_onset + time_to_PSC_or_CSC + nearest_PSC_or_CSC.performance_metric
+            t_onset_needle = sp.t_onset + DIDO + time_to_PSC_or_CSC + DTN
         end
     end
 

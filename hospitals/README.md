@@ -14,6 +14,8 @@ Verified 2 October 2026 against county EMS agency (LEMSA) receiving-facility lis
 
 Hospitals that perform thrombectomy without CSC/TSC certification or a LEMSA EVT designation are typed PSC in the primary analysis and noted in `CertLevel` ("EVT on site (uncertified)"): CPMC Van Ness, Zuckerberg SF General, Washington Hospital Fremont, Alta Bates Summit (Summit campus). Run with `EVT_DEFINITION=onsite` for the sensitivity analysis that retypes these as CSC.
 
+The `Performance Metric` column (60 for every hospital) is legacy and no longer read: in-hospital intervals are the DTN / DTP / DIDO constants in `src/*_STPMDP_ORS.jl` (defaults 45 / 90 direct, 60 transfer-in / 121 min; override with `DTN_MIN`, `DTP_MIN`, `DTP_TRANSFER_MIN`, `DIDO_MIN`).
+
 ## Changes made 2 October 2026
 
 | Hospital | Was | Now | Basis |

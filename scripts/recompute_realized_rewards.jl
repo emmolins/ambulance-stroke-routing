@@ -94,7 +94,9 @@ function realized_reward(mdp, row_idx, lat, lon, t_onset, realized_type,
     # Reconstruct sp using the stored travel time (deterministic case; with
     # noise > 0 the stored value is the realized noisy time the simulation
     # used, which is still the right thing to feed back into reward()).
-    sp_t_onset = t_onset + dest_loc.performance_metric + travel_time
+    # Mirrors transition(): from the field, arrival time = onset + travel;
+    # in-hospital intervals (DTN / DTP / DIDO) are applied inside reward().
+    sp_t_onset = t_onset + travel_time
     sp = PatientState(dest_loc, sp_t_onset, KNOWN, realized_type)
 
     return reward(mdp, s, a, sp)
