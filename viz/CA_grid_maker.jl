@@ -91,7 +91,7 @@ println("  region (lon_min, lon_max, lat_min, lat_max) = $region")
 # Build a dense grid matrix from sparse (cell_i, cell_j, value) records
 # ============================================================================
 """
-Project the cell-keyed values into a regular grid suitable for `pcolor`.
+Project the cell-keyed values into a regular grid suitable for `grdimage`.
 Cells outside the in-mask set (water / out-of-region) become NaN.
 """
 function build_grid(cell_df::DataFrame, value_col::Symbol, grid_meta::DataFrame)
@@ -124,16 +124,22 @@ function plot_outcome(cell_df, value_col::Symbol, label::String, out_name::Strin
     cpt = makecpt(color = :hot, range = (lo, hi, (hi - lo) / 200))
 
     out_path = joinpath(OUT_DIR, out_name)
-    pcolor(X, Y, M;
+    # mat2grid + grdimage is robust to the pcolor edge/centre bookkeeping in
+    # GMT.jl (pcolor threw BoundsError on a 198-column grid). Rows of M run
+    # south to north, matching GMT.jl's default "BCB" layout. NaN cells
+    # (water, outside the mask) are left transparent.
+    G = mat2grid(M; x = X, y = Y)
+    grdimage(G;
         proj  = "M6i",
         cmap  = cpt,
         region = region,
         frame = "afg",
-        title = label)
+        title = label,
+        nan_alpha = true)
     coast!(region = region, proj = "M6i", area = 1000, water = :white)
     coast!(region = region, proj = "M6i", shorelines = true)
     annotate_cities!()
-    colorbar!(cmap = cpt, show = true, savefig = out_path)
+    colorbar!(cmap = cpt, show = false, savefig = out_path)
     println("✓ $out_path")
 end
 
@@ -154,16 +160,22 @@ function plot_difference(cell_df, value_col::Symbol, label::String, out_name::St
     cpt = makecpt(color = :polar, range = (-half, half, half / 100))
 
     out_path = joinpath(OUT_DIR, out_name)
-    pcolor(X, Y, M;
+    # mat2grid + grdimage is robust to the pcolor edge/centre bookkeeping in
+    # GMT.jl (pcolor threw BoundsError on a 198-column grid). Rows of M run
+    # south to north, matching GMT.jl's default "BCB" layout. NaN cells
+    # (water, outside the mask) are left transparent.
+    G = mat2grid(M; x = X, y = Y)
+    grdimage(G;
         proj  = "M6i",
         cmap  = cpt,
         region = region,
         frame = "afg",
-        title = label)
+        title = label,
+        nan_alpha = true)
     coast!(region = region, proj = "M6i", area = 1000, water = :white)
     coast!(region = region, proj = "M6i", shorelines = true)
     annotate_cities!()
-    colorbar!(cmap = cpt, show = true, savefig = out_path)
+    colorbar!(cmap = cpt, show = false, savefig = out_path)
     n_neg = count(<(0), vals)
     pct_neg = round(100 * n_neg / length(vals); digits = 1)
     println("✓ $out_path  ($n_neg cells negative — $pct_neg %)")
@@ -217,14 +229,14 @@ plot_outcome(cell, :reward_heur2, "Heuristic 2: P(good outcome)",
 
 println("\n[2/2] Policy-difference maps (diverging cmap, no clipping)")
 plot_difference(cell, :diff_opt_minus_nearest,
-                "MDP optimal − Nearest", "CA_diff_opt_minus_nearest.pdf")
+                "MDP optimal minus Nearest", "CA_diff_opt_minus_nearest.pdf")
 plot_difference(cell, :diff_opt_minus_heur1,
-                "MDP optimal − Heuristic 1", "CA_diff_opt_minus_heur1.pdf")
+                "MDP optimal minus Heuristic 1", "CA_diff_opt_minus_heur1.pdf")
 plot_difference(cell, :diff_opt_minus_heur2,
-                "MDP optimal − Heuristic 2", "CA_diff_opt_minus_heur2.pdf")
+                "MDP optimal minus Heuristic 2", "CA_diff_opt_minus_heur2.pdf")
 plot_difference(cell, :diff_heur1_minus_nearest,
-                "Heuristic 1 − Nearest", "CA_diff_heur1_minus_nearest.pdf")
+                "Heuristic 1 minus Nearest", "CA_diff_heur1_minus_nearest.pdf")
 plot_difference(cell, :diff_heur2_minus_nearest,
-                "Heuristic 2 − Nearest", "CA_diff_heur2_minus_nearest.pdf")
+                "Heuristic 2 minus Nearest", "CA_diff_heur2_minus_nearest.pdf")
 
 println("\nDone.")
