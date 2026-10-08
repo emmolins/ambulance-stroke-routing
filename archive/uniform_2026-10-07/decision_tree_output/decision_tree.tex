@@ -1,0 +1,88 @@
+\documentclass[tikz]{standalone}
+\usepackage{fontspec}
+\setmainfont{Latin Modern Math}
+\usetikzlibrary{arrows}
+\usetikzlibrary{graphs}
+\usetikzlibrary{graphdrawing}
+
+% from: https://tex.stackexchange.com/questions/453132/fresh-install-of-tl2018-no-tikz-graph-drawing-libraries-found
+\usepackage{luacode}
+\begin{luacode*}
+	function pgf_lookup_and_require(name)
+	local sep = package.config:sub(1,1)
+	local function lookup(name)
+	local sub = name:gsub('%.',sep)  
+	if kpse.find_file(sub, 'lua') then
+	require(name)
+	elseif kpse.find_file(sub, 'clua') then
+	collectgarbage('stop') 
+	require(name)
+	collectgarbage('restart')
+	else
+	return false
+	end
+	return true
+	end
+	return
+	lookup('pgf.gd.' .. name .. '.library') or
+	lookup('pgf.gd.' .. name) or
+	lookup(name .. '.library') or
+	lookup(name) 
+	end
+\end{luacode*}
+
+\usegdlibrary{layered}
+\begin{document}
+\begin{tikzpicture}[]
+\graph [layered layout, , ] {
+1/"Time since onset ≤ 187.62003625006938" [],
+2/"Time to CSC ≤ 30.15" [],
+3/"Route_CSC" [],
+4/"Time since onset ≤ 170.93858503813493" [],
+5/"Diff CSC-PSC ≤ 46.725" [],
+6/"Route_CSC" [],
+7/"Route_CSC" [],
+8/"Time to CSC ≤ 33.38333333333333" [],
+9/"Route_PSC" [],
+10/"Route_PSC" [],
+11/"Ratio CSC/PSC ≤ 0.9910750990566295" [],
+12/"Ratio CSC/NSC ≤ 0.9568295741476405" [],
+13/"Route_CSC" [],
+14/"Time since onset ≤ 213.73358158195003" [],
+15/"Route_CSC" [],
+16/"Route_NSC" [],
+17/"Ratio PSC/NSC ≤ 1.0059732737515206" [],
+18/"Time since onset ≤ 197.17122568666548" [],
+19/"Route_PSC" [],
+20/"Route_PSC" [],
+21/"Time since onset ≤ 210.77909068632374" [],
+22/"Route_PSC" [],
+23/"Route_NSC" [],
+;
+1 -- [,] 2;
+1 -- [,] 11;
+2 -- [,] 3;
+2 -- [,] 4;
+4 -- [,] 5;
+4 -- [,] 8;
+5 -- [,] 6;
+5 -- [,] 7;
+8 -- [,] 9;
+8 -- [,] 10;
+11 -- [,] 12;
+11 -- [,] 17;
+12 -- [,] 13;
+12 -- [,] 14;
+14 -- [,] 15;
+14 -- [,] 16;
+17 -- [,] 18;
+17 -- [,] 21;
+18 -- [,] 19;
+18 -- [,] 20;
+21 -- [,] 22;
+21 -- [,] 23;
+};
+
+\end{tikzpicture}
+
+\end{document}

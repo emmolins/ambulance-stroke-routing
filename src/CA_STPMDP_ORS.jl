@@ -27,6 +27,7 @@ using Parameters
 using POMDPs
 using POMDPTools     # exports `Deterministic` used in the transition function
 using Random
+using Distributions: LogNormal, cdf, quantile
 
 ###### =========================================================================
 ######  ENUMS AND DATA STRUCTURES
@@ -180,6 +181,38 @@ const DIDO         = parse(Float64, get(ENV, "DIDO_MIN",         "121"))  # door
 # overrides an outcome difference. Applied in the search only, not to the
 # recorded reward.
 const TRAVEL_TIEBREAK = parse(Float64, get(ENV, "TRAVEL_TIEBREAK", "1e-7"))
+
+# ---------------------------------------------------------------------------
+# Onset-to-pickup time (minutes from symptom onset / last known well to the
+# ambulance leaving the scene with the patient). Every cohort in the repository
+# draws from this one sampler so simulations, grid, tree training and tree
+# evaluation agree.
+#   ONSET_DIST=lognormal  (default, primary analysis) LogNormal(median 90 min, log-SD 1.28) truncated to [30, 270].
+#                          Fitted to onset-to-door for EMS-attended EVT-eligible patients
+#                          (median 104, IQR 60-338 min; Hegenberg 2026) less the US median
+#                          EMS transport interval of 14 min (Cash 2022 / Chari 2022).
+#                          Cross-checked against LAMS-positive LA County patients (LKW to
+#                          first medical contact median 26, IQR 14-64; Bosson 2023) and
+#                          all-severity EMS arrivals in Cincinnati (Adeoye 2017).
+#                          ONSET_MEDIAN / ONSET_LOGSD override.
+#   ONSET_DIST=uniform    U(30, 270): the earlier stress-test cohort, kept for the
+#                          sensitivity analysis; over-represents late presenters.
+# Both samplers consume one uniform draw per patient, so seeds stay comparable.
+# ---------------------------------------------------------------------------
+const ONSET_DIST   = lowercase(get(ENV, "ONSET_DIST", "lognormal"))
+const ONSET_MEDIAN = parse(Float64, get(ENV, "ONSET_MEDIAN", "90"))
+const ONSET_LOGSD  = parse(Float64, get(ENV, "ONSET_LOGSD",  "1.28"))
+const ONSET_MIN, ONSET_MAX = 30.0, 270.0
+const _ONSET_CDF_LO = ONSET_DIST == "lognormal" ? cdf(LogNormal(log(ONSET_MEDIAN), ONSET_LOGSD), ONSET_MIN) : 0.0
+const _ONSET_CDF_HI = ONSET_DIST == "lognormal" ? cdf(LogNormal(log(ONSET_MEDIAN), ONSET_LOGSD), ONSET_MAX) : 1.0
+function sample_onset_time()
+    u = rand()
+    if ONSET_DIST == "lognormal"
+        # inverse-CDF sampling of the truncated log-normal from a single uniform draw
+        return quantile(LogNormal(log(ONSET_MEDIAN), ONSET_LOGSD), _ONSET_CDF_LO + u * (_ONSET_CDF_HI - _ONSET_CDF_LO))
+    end
+    return ONSET_MIN + u * (ONSET_MAX - ONSET_MIN)
+end
 
 function csv_to_locations(file)
     df = CSV.read(file, DataFrame, delim=',')

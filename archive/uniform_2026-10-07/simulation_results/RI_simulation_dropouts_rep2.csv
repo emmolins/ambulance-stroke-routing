@@ -1,0 +1,2 @@
+sim_attempt,start_lat,start_lon,t_onset,stroke_type,failed_policy,reason
+250,41.919999999976476,-71.53333333324795,55.34532810460454,MIMIC,optimal,ORS could not route

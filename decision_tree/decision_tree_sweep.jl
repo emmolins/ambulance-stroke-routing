@@ -195,7 +195,7 @@ while collected < N_TEST && idx < length(all_points)
     global collected                           # try introduces a scope; keep writes on the global
     s = PatientState(
         Location("FIELD$collected", latlon, -1, FIELD),
-        30 + rand() * 240,
+        sample_onset_time(),
         UNKNOWN,
         sample_stroke_type(mdp),
     )

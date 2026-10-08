@@ -1,0 +1,2 @@
+sim_attempt,start_lat,start_lon,t_onset,stroke_type,failed_policy,reason
+604,41.763055555531906,-71.49027777769237,201.10002513467927,HEMORRHAGIC,optimal,ORS could not route

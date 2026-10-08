@@ -1,0 +1,96 @@
+\documentclass[tikz]{standalone}
+\usepackage{fontspec}
+\tikzset{
+  every node/.style={
+    circle,
+    draw,
+    fill=blue!20,
+    minimum size=10mm,
+    inner sep=2pt,
+    font=\small,
+    align=center
+  }
+}
+
+\setmainfont{Latin Modern Math}
+\usetikzlibrary{arrows}
+\usetikzlibrary{graphs}
+\usetikzlibrary{graphdrawing}
+
+% from: https://tex.stackexchange.com/questions/453132/fresh-install-of-tl2018-no-tikz-graph-drawing-libraries-found
+\usepackage{luacode}
+\begin{luacode*}
+	function pgf_lookup_and_require(name)
+	local sep = package.config:sub(1,1)
+	local function lookup(name)
+	local sub = name:gsub('%.',sep)  
+	if kpse.find_file(sub, 'lua') then
+	require(name)
+	elseif kpse.find_file(sub, 'clua') then
+	collectgarbage('stop') 
+	require(name)
+	collectgarbage('restart')
+	else
+	return false
+	end
+	return true
+	end
+	return
+	lookup('pgf.gd.' .. name .. '.library') or
+	lookup('pgf.gd.' .. name) or
+	lookup(name .. '.library') or
+	lookup(name) 
+	end
+\end{luacode*}
+
+\usegdlibrary{layered}
+\begin{document}
+\begin{tikzpicture}[]
+\graph [layered layout, , ] {
+1/"Time since onset ≤ 194.56338920509484" [],
+2/"Time to CSC ≤ 5.000003843e7" [],
+3/"Time since onset ≤ 154.1420333253492" [],
+4/"Diff CSC-PSC ≤ 8.713333333333335" [],
+5/"Route CSC" [],
+6/"Route CSC" [],
+7/"Time to CSC ≤ 41.814166666666665" [],
+8/"Route CSC" [],
+9/"Route Clinic" [],
+10/"Diff CSC-PSC ≤ 4.9999966560833335e7" [],
+11/"Route Clinic" [],
+12/"Time since onset ≤ 158.93151701939604" [],
+13/"Route PSC" [],
+14/"Route Clinic" [],
+15/"Time since onset ≤ 202.7777273910129" [],
+16/"Time to PSC ≤ 13.355" [],
+17/"Time to PSC ≤ 11.121666666666666" [],
+18/"Route PSC" [],
+19/"Route CSC" [],
+20/"Route Clinic" [],
+21/"Route Clinic" [],
+;
+1 -- [,] 2;
+1 -- [,] 15;
+2 -- [,] 3;
+2 -- [,] 10;
+3 -- [,] 4;
+3 -- [,] 7;
+4 -- [,] 5;
+4 -- [,] 6;
+7 -- [,] 8;
+7 -- [,] 9;
+10 -- [,] 11;
+10 -- [,] 12;
+12 -- [,] 13;
+12 -- [,] 14;
+15 -- [,] 16;
+15 -- [,] 21;
+16 -- [,] 17;
+16 -- [,] 20;
+17 -- [,] 18;
+17 -- [,] 19;
+};
+
+\end{tikzpicture}
+\end{document}
+

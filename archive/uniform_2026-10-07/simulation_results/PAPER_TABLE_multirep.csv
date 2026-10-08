@@ -1,0 +1,6 @@
+comparison,n_replicates_marg,grand_mean_marg,inter_rep_sd_marg,inter_rep_se_marg,ci95_lo_marg,ci95_hi_marg,per_rep_min_marg,per_rep_max_marg,n_replicates_real,grand_mean_real,inter_rep_sd_real,inter_rep_se_real,ci95_lo_real,ci95_hi_real,per_rep_min_real,per_rep_max_real
+MDP optimal − Nearest,10,0.02284,0.0013,0.00041,0.02191,0.02377,0.02047,0.02438,10,0.02187,0.00156,0.00049,0.02076,0.02298,0.01885,0.02357
+MDP optimal − Heuristic 1,10,0.00059,5.0e-5,2.0e-5,0.00056,0.00063,0.00047,0.00065,10,0.00059,8.0e-5,2.0e-5,0.00053,0.00064,0.00049,0.00072
+MDP optimal − Heuristic 2,10,0.01909,0.00106,0.00034,0.01833,0.01985,0.01704,0.02061,10,0.01834,0.00127,0.0004,0.01743,0.01925,0.0156,0.01976
+Heuristic 1 − Nearest,10,0.02224,0.00131,0.00041,0.02131,0.02318,0.01987,0.02377,10,0.02128,0.00158,0.0005,0.02015,0.02242,0.0182,0.02302
+Heuristic 2 − Nearest,10,0.00375,0.00044,0.00014,0.00344,0.00406,0.00315,0.00464,10,0.00353,0.00038,0.00012,0.00326,0.0038,0.00282,0.00399

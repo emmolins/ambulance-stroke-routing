@@ -120,7 +120,7 @@ function sample_routable_patient_state(mdp::StrokeMDP; max_attempts::Int=50)
     for attempt in 1:max_attempts
         sampled_s = PatientState(
             Location("FIELD1", rand_location(), -1, FIELD), 
-            rand() * 270, 
+            sample_onset_time(), 
             UNKNOWN, 
             sample_stroke_type(mdp)
         )

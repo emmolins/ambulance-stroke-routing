@@ -175,7 +175,7 @@ function run_simulation(mdp, location_pool)
 
         state = PatientState(
             Location("FIELD$attempts", latlon, -1, FIELD),
-            30 + rand() * 240,
+            sample_onset_time(),
             UNKNOWN,
             sample_stroke_type(mdp),
         )

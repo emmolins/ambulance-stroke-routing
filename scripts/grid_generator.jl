@@ -125,7 +125,7 @@ function process_cell(mdp, cell)
 
         loc = Location("FIELD$(cell.cell_i)_$(cell.cell_j)_$(attempts)",
                        (lat, lon), -1, FIELD)
-        t_onset = 30 + rand() * 240
+        t_onset = sample_onset_time()
         realized_type = sample_stroke_type(mdp)
         planner_state = PatientState(loc, t_onset, UNKNOWN, realized_type)
 

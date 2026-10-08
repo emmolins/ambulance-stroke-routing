@@ -1,0 +1,3 @@
+sim_attempt,start_lat,start_lon,t_onset,stroke_type,failed_policy,reason
+35,41.5194444444206,-71.32361111102557,170.39028783585948,NLVO,optimal,ORS could not route
+964,41.3969444444205,-71.49083333324792,194.45871560166884,LVO,optimal,ORS could not route

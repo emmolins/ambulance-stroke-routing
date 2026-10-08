@@ -5,6 +5,8 @@
 #   ./run_all.sh ca            # full California chain
 #   ./run_all.sh ri            # Rhode Island replicates + stats (needs ORS-RI on $ORS_PORT)
 #   START=5 ./run_all.sh ca    # resume from step 5
+#   STOP=6 ./run_all.sh ca     # run steps up to 6 only
+#   Steps 24-26 rerun the replicates with the uniform onset cohort as a sensitivity analysis.
 #   PAR=4 ./run_all.sh ca      # replicates in parallel (default 4)
 #
 # Stops at the first failing step. Logs: run_logs/<region>_<step>_<name>.log
@@ -13,13 +15,15 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 REGION="${1:-ca}"; REGION_UC=$(echo "$REGION" | tr a-z A-Z)
-START="${START:-1}"; PAR="${PAR:-4}"
+START="${START:-1}"; STOP="${STOP:-99}"; PAR="${PAR:-4}"
+echo "ONSET_DIST=${ONSET_DIST:-lognormal (default)}  REGION=$REGION  START=$START  STOP=$STOP"
 mkdir -p run_logs simulation_results decision_tree_output
 J="julia --project=."
 
 step() {  # step <n> <name> <command...>
     local n=$1 name=$2; shift 2
     [[ $n -lt $START ]] && { echo "[skip] $n $name"; return; }
+    [[ $n -gt $STOP ]] && { echo "[stop] $n $name (STOP=$STOP)"; return; }
     local log="run_logs/${REGION}_$(printf %02d "$n")_${name}.log"
     echo "[$(date +%H:%M)] step $n: $name  -> $log"
     if ! "$@" > "$log" 2>&1; then
@@ -59,6 +63,10 @@ if [[ $REGION == ca ]]; then
     step 21 equity            $J scripts/equity_analysis.jl
     step 22 grid_maps         $J viz/CA_grid_maker.jl
     step 23 latency           $J scripts/computational_analysis.jl
+    # Sensitivity cohort: uniform onset-to-pickup (the earlier stress-test cohort)
+    step 24 uniform_reps      replicates src/CA_simulations.jl ONSET_DIST=uniform OUTPUT_TAG=_uniform
+    step 25 uniform_pool      $J -e 'using CSV, DataFrames; fs = sort(filter(f -> occursin(r"^CA_simulation_results_rep\d+_uniform\.csv$", f), readdir("simulation_results"))); dfs = [begin d = CSV.read(joinpath("simulation_results", f), DataFrame); d.replicate .= parse(Int, match(r"_rep(\d+)_", f).captures[1]); d end for f in fs]; CSV.write("simulation_results/CA_simulation_results_uniform.csv", vcat(dfs...)); println(length(fs), " files pooled")'
+    step 26 uniform_stats     env INPUT_PREFIX=CA_simulation_results_uniform $J src/CA_simulations_stats.jl
 elif [[ $REGION == ri ]]; then
     export ORS_PORT="${ORS_PORT:-8081}"
     step 1  replicates        replicates src/RI_simulations.jl

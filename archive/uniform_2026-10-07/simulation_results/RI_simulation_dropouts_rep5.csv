@@ -1,0 +1,4 @@
+sim_attempt,start_lat,start_lon,t_onset,stroke_type,failed_policy,reason
+184,41.51722222219838,-71.32305555547,78.79138870823097,HEMORRHAGIC,optimal,ORS could not route
+569,41.5194444444206,-71.32361111102557,232.98290171157598,LVO,optimal,ORS could not route
+707,41.919999999976476,-71.53333333324795,136.03309307648288,NLVO,optimal,ORS could not route

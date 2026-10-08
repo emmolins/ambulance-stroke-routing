@@ -1,0 +1,51 @@
+comparison,replicate,n,mean_diff
+MDP optimal − Nearest,1,1000,0.02194081364556595
+MDP optimal − Nearest,2,1000,0.020164678537875128
+MDP optimal − Nearest,3,1000,0.02095785847876857
+MDP optimal − Nearest,4,1000,0.01976243416811908
+MDP optimal − Nearest,5,1000,0.018237286261851494
+MDP optimal − Nearest,6,1000,0.018972745281206852
+MDP optimal − Nearest,7,1000,0.01912252309308107
+MDP optimal − Nearest,8,1000,0.020477935438071533
+MDP optimal − Nearest,9,1000,0.020643318545661087
+MDP optimal − Nearest,10,1000,0.02061890877558157
+MDP optimal − Heuristic 1,1,1000,0.0006460547970438146
+MDP optimal − Heuristic 1,2,1000,0.000571599720355876
+MDP optimal − Heuristic 1,3,1000,0.0007980458356355946
+MDP optimal − Heuristic 1,4,1000,0.0005974259640159354
+MDP optimal − Heuristic 1,5,1000,0.0007286267515087141
+MDP optimal − Heuristic 1,6,1000,0.0007342291063000269
+MDP optimal − Heuristic 1,7,1000,0.0007369347299147104
+MDP optimal − Heuristic 1,8,1000,0.0007039546742456124
+MDP optimal − Heuristic 1,9,1000,0.0005210800780599776
+MDP optimal − Heuristic 1,10,1000,0.0007373018021135916
+MDP optimal − Heuristic 2,1,1000,0.02194081364556595
+MDP optimal − Heuristic 2,2,1000,0.020164678537875128
+MDP optimal − Heuristic 2,3,1000,0.02095785847876857
+MDP optimal − Heuristic 2,4,1000,0.01976243416811908
+MDP optimal − Heuristic 2,5,1000,0.018237286261851494
+MDP optimal − Heuristic 2,6,1000,0.018972745281206852
+MDP optimal − Heuristic 2,7,1000,0.01912252309308107
+MDP optimal − Heuristic 2,8,1000,0.020477935438071533
+MDP optimal − Heuristic 2,9,1000,0.020643318545661087
+MDP optimal − Heuristic 2,10,1000,0.02061890877558157
+Heuristic 1 − Nearest,1,1000,0.021294758848522135
+Heuristic 1 − Nearest,2,1000,0.019593078817519254
+Heuristic 1 − Nearest,3,1000,0.020159812643132973
+Heuristic 1 − Nearest,4,1000,0.01916500820410314
+Heuristic 1 − Nearest,5,1000,0.01750865951034278
+Heuristic 1 − Nearest,6,1000,0.018238516174906825
+Heuristic 1 − Nearest,7,1000,0.018385588363166356
+Heuristic 1 − Nearest,8,1000,0.01977398076382592
+Heuristic 1 − Nearest,9,1000,0.020122238467601108
+Heuristic 1 − Nearest,10,1000,0.01988160697346798
+Heuristic 2 − Nearest,1,1000,0.0
+Heuristic 2 − Nearest,2,1000,0.0
+Heuristic 2 − Nearest,3,1000,0.0
+Heuristic 2 − Nearest,4,1000,0.0
+Heuristic 2 − Nearest,5,1000,0.0
+Heuristic 2 − Nearest,6,1000,0.0
+Heuristic 2 − Nearest,7,1000,0.0
+Heuristic 2 − Nearest,8,1000,0.0
+Heuristic 2 − Nearest,9,1000,0.0
+Heuristic 2 − Nearest,10,1000,0.0

@@ -1,56 +1,49 @@
-% ---- III. Problem Formulation. Budget 1.3 pages (~900 words + 1 table + 1 equation block).
-% Source: JAMA "Markov Decision Process Framework" (state/action/transition/reward), expanded
-% with: capability tiers, subtype marginalisation, in-hospital intervals (NEW), unrestricted
-% transfers (NEW), eMethods 1 equations moved into the main text.
+% ---- III. Problem Formulation. Source: JAMA "Markov Decision Process Framework", expanded with
+% capability tiers, subtype marginalization, in-hospital intervals and unrestricted transfers;
+% eMethods 1 equations moved into the main text.
 \section{Problem Formulation}
+\label{sec:problem}
 
-\jama{JAMA "MDP Framework" opening, kept.}
-We model prehospital stroke triage as a Markov decision process (MDP)~\cite{bellman1957,kochenderfer2022} defined by a state space, an action space, a transition model, and a reward function. The objective is a policy, a mapping from states to actions, that maximises expected cumulative reward. Here the horizon is short: an initial transport and at most one inter-facility transfer.
+We model prehospital stroke triage as a Markov decision process (MDP)~\cite{bellman1957,kochenderfer2022} defined by a state space, an action space, a transition model, and a reward function. The objective is a policy, a mapping from states to actions, that maximizes expected cumulative reward. Here the horizon is short: an initial transport and at most one inter-facility transfer.
 
 \subsection{Hospital capability tiers}
-\new{Hospitals are classified by what they can do for a stroke patient on arrival, not by certification label. An \emph{EVT-capable centre} performs endovascular thrombectomy on site; in the primary analysis this means a Joint Commission Comprehensive or Thrombectomy-Capable Stroke Center, a DNV Comprehensive Stroke Center, or a hospital designated for thrombectomy by its county EMS agency. A \emph{thrombolysis-capable centre} administers intravenous thrombolysis but transfers patients for EVT (Primary, Advanced Primary and Acute Stroke Ready certification). A \emph{non-stroke-centre hospital} has a 24-hour emergency department and no stroke certification; we assume it neither administers thrombolysis nor performs EVT and transfers for both. Section~\ref{sec:setup} describes how the designations were verified, and Section~\ref{sec:results} reports a sensitivity analysis in which hospitals known to perform thrombectomy without certification are treated as EVT-capable.}
+Hospitals are classified by what they can do for a stroke patient on arrival, not by certification label alone. An \emph{EVT-capable center} performs endovascular thrombectomy on site; in the primary analysis this means a Joint Commission Comprehensive or Thrombectomy-Capable Stroke Center, a DNV Comprehensive Stroke Center, or a hospital designated for thrombectomy by its county EMS agency. A \emph{thrombolysis-capable center} administers intravenous thrombolysis but transfers patients for EVT (Primary, Advanced Primary and Acute Stroke Ready certification). A \emph{non-stroke-center hospital} has a 24-hour emergency department and no stroke certification; we assume it neither administers thrombolysis nor performs EVT and transfers for both. Section~\ref{sec:setup} describes how designations were verified, and Section~\ref{sec:results} reports a sensitivity analysis in which hospitals known to perform thrombectomy without certification are treated as EVT-capable.
 
 \subsection{State space}
-\jama{JAMA, edited: onset range and subtype prior kept; "assigned a subtype" clarified (Reviewer 2).}
-A state $s = (\ell, t, k, \sigma)$ comprises the patient's location $\ell$ (a pickup coordinate or a hospital), minutes since symptom onset $t$, whether the subtype is known $k \in \{\text{unknown}, \text{known}\}$, and the subtype $\sigma \in \{\text{LVO}, \text{nLVO}, \text{ICH}, \text{mimic}\}$. Pickup locations are sampled from high-resolution population density data~\cite{meta2019}, and onset-to-pickup time from 30 to 270 minutes, reflecting typical ranges to EMS contact~\cite{eddelien2021}. \new{The subtype is drawn from the published prevalence of each category among patients with a positive prehospital LVO screen (LAMS~$\geq$~4)~\cite{holodinsky2018}: $p_{\text{LVO}} = 0.454$, $p_{\text{nLVO}} = 0.109$, $p_{\text{ICH}} = 0.345$, $p_{\text{mimic}} = 0.092$. The planner never observes the drawn subtype while $k = \text{unknown}$; it reasons over the prior (Section~\ref{sec:method}). The subtype becomes known on arrival at any hospital, when imaging is assumed to occur.}
+A state $s = (\ell, t, k, \sigma)$ comprises the patient's location $\ell$ (a pickup coordinate or a hospital), minutes since symptom onset $t$, whether the subtype is known $k \in \{\text{unknown}, \text{known}\}$, and the subtype $\sigma \in \{\text{LVO}, \text{nLVO}, \text{ICH}, \text{mimic}\}$. Pickup locations are sampled from high-resolution population density data~\cite{meta2019}, and onset-to-pickup time from 30 to 270 minutes, reflecting typical ranges to EMS contact~\cite{eddelien2021}. The subtype is drawn from the published prevalence of each category among patients with a positive prehospital LVO screen (Los Angeles Motor Scale $\geq 4$)~\cite{holodinsky2018}: $p_{\text{LVO}} = 0.454$, $p_{\text{nLVO}} = 0.109$, $p_{\text{ICH}} = 0.345$, $p_{\text{mimic}} = 0.092$. The planner never observes the drawn subtype while $k = \text{unknown}$; it reasons over the prior (Section~\ref{sec:method}). The subtype becomes known on arrival at any hospital, when imaging is assumed to occur.
 
 \subsection{Action space}
-\jama{JAMA, with tier names replaced.}
-Actions are discrete and location-dependent, and never route a patient to a lower capability tier. From the field, the patient may be transported to any hospital within the EMS catchment radius (Section~\ref{sec:setup}). From a non-stroke-centre hospital the options are transfer to a thrombolysis-capable or EVT-capable centre, or stay. From a thrombolysis-capable centre, transfer to an EVT-capable centre or stay. At an EVT-capable centre the only action is to stay.
+Actions are discrete and location-dependent, and never route a patient to a lower capability tier. From the field, the patient may be transported to any hospital within the EMS catchment radius (Section~\ref{sec:setup}). From a non-stroke-center hospital the options are transfer to a thrombolysis-capable or EVT-capable center, or stay. From a thrombolysis-capable center, transfer to an EVT-capable center or stay. At an EVT-capable center the only action is to stay.
 
 \subsection{Transition model}
-\jama{JAMA, rewritten: the single 60-min "preparation time" is replaced by the interval model below (Reviewers 1 and 2).}
 A routing action moves the patient to the chosen hospital and advances the clock by the road travel time $\tau(\ell, \ell')$ obtained from the OpenRouteService routing engine on OpenStreetMap data; a transfer out of a hospital additionally incurs the door-in-door-out interval $T_{\text{DIDO}}$ before departure. On arrival the subtype becomes known. Transitions are deterministic given the action; all uncertainty enters through the subtype.
 
 \subsection{In-hospital intervals}
-\new{Treatment is not instantaneous on arrival. We model three intervals, one value per interval for all hospitals of a tier, taken from national benchmarks (Table~\ref{tab:intervals}): door-to-needle $T_{\text{DTN}}$ for thrombolysis; door-to-puncture $T_{\text{DTP}}$ for EVT after direct arrival, and a shorter $T_{\text{DTP}}^{\text{tr}}$ for a transferred-in patient who arrives already imaged; and door-in-door-out $T_{\text{DIDO}}$ at the sending hospital. For a patient arriving directly at an EVT-capable centre at onset time $t_a$, needle time is $t_a + T_{\text{DTN}}$ and puncture time $t_a + T_{\text{DTP}}$. At a thrombolysis-capable centre, needle time is $t_a + T_{\text{DTN}}$ and puncture time, via the nearest EVT-capable centre at road time $\tau'$, is $t_a + T_{\text{DIDO}} + \tau' + T_{\text{DTP}}^{\text{tr}}$. At a non-stroke-centre hospital both treatments follow a transfer. Inter-facility transfers are not distance-limited; a pair is unreachable only if the road network has no route.}
-
-\new{For comparison, Holodinsky \emph{et al.}~\cite{holodinsky2018} assume door-to-needle 30, door-in-door-out 50 and door-to-puncture 60 (direct) or 30 (transfer) minutes in their base case, and 60 / 120 / 60--90 minutes in their slower scenarios; our base case lies between the two and is anchored to current registry medians and national targets.}
+Treatment is not instantaneous on arrival. We model three intervals, one value per interval for all hospitals of a tier, taken from national benchmarks (Table~\ref{tab:intervals}): door-to-needle $T_{\text{DTN}}$ for thrombolysis; door-to-puncture $T_{\text{DTP}}$ for EVT after direct arrival, and a shorter $T_{\text{DTP}}^{\text{tr}}$ for a transferred-in patient who arrives already imaged; and door-in-door-out $T_{\text{DIDO}}$ at the sending hospital. For a patient arriving directly at an EVT-capable center at onset time $t_a$, needle time is $t_a + T_{\text{DTN}}$ and puncture time $t_a + T_{\text{DTP}}$. At a thrombolysis-capable center, needle time is $t_a + T_{\text{DTN}}$ and puncture time, via the nearest EVT-capable center at road time $\tau'$, is $t_a + T_{\text{DIDO}} + \tau' + T_{\text{DTP}}^{\text{tr}}$. At a non-stroke-center hospital both treatments follow a transfer. Inter-facility transfers are not distance-limited; a pair is unreachable only if the road network has no route. For comparison, Holodinsky \emph{et al.}~\cite{holodinsky2018} assume door-to-needle 30, door-in-door-out 50 and door-to-puncture 60 (direct) or 30 (transfer) minutes in their base case, and 60 / 120 / 60--90 minutes in their slower scenarios; our base case lies between the two and is anchored to current registry medians and national targets.
 
 \begin{table}[t]
 \centering
-\caption{In-hospital intervals used in the base case (minutes) and the ranges examined in sensitivity analysis.}
+\caption{In-hospital intervals in the base case (minutes) and the ranges examined in sensitivity analysis.}
 \label{tab:intervals}
-\begin{tabular}{@{}lccl@{}}
+\resizebox{\columnwidth}{!}{\begin{tabular}{@{}lccl@{}}
 \toprule
 Interval & Base & Range & Source \\
 \midrule
-Door-to-needle $T_{\text{DTN}}$ & 45 & 30--60 & Target: Stroke Phase III goal~\cite{targetstroke3} \\
-Door-to-puncture, direct $T_{\text{DTP}}$ & 90 & 60--120 & Target: Stroke Phase III goal~\cite{targetstroke3} \\
-Door-to-puncture, transfer $T_{\text{DTP}}^{\text{tr}}$ & 60 & 45--90 & Target: Stroke Phase III goal~\cite{targetstroke3} \\
-Door-in-door-out $T_{\text{DIDO}}$ & 121 & 60--175 & GWTG-Stroke median (IQR 89--175)~\cite{royan2026} \\
+Door-to-needle $T_{\text{DTN}}$ & 45 & 30--60 & Target: Stroke III~\cite{targetstroke3} \\
+Door-to-puncture, direct $T_{\text{DTP}}$ & 90 & 60--120 & Target: Stroke III~\cite{targetstroke3} \\
+Door-to-puncture, transfer $T_{\text{DTP}}^{\text{tr}}$ & 60 & 45--90 & Target: Stroke III~\cite{targetstroke3} \\
+Door-in-door-out $T_{\text{DIDO}}$ & 121 & 60--175 & GWTG-Stroke median, IQR 89--175~\cite{royan2026} \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 \subsection{Reward}
-\jama{JAMA "Reward Function" + eMethods 1 equations moved into the main text. Define "good outcome" explicitly (Reviewer 2).}
-The reward of reaching a terminal hospital state is the probability of a good outcome, defined as an excellent outcome at 90 days (modified Rankin Scale 0--1), following Holodinsky \emph{et al.}~\cite{holodinsky2018}. For ischaemic subtypes it declines with onset-to-treatment time; for haemorrhage and mimics it is constant. With $t_n$ and $t_p$ the onset-to-needle and onset-to-puncture times in minutes,
-\begin{align}
-P_{\text{LVO,IVT}}(t_n) &= \max\{0.1328,\; 0.2359 - 0.0004\,t_n + 2\times10^{-7}\,t_n^2\},\\
-P_{\text{LVO,EVT}}(t_p) &= \max\{0.129,\; 0.3394 - 0.0002\,t_p + 4\times10^{-8}\,t_p^2\},\\
+The reward of reaching a terminal hospital state is the probability of a good outcome, defined as an excellent outcome at 90 days (modified Rankin Scale 0--1), following Holodinsky \emph{et al.}~\cite{holodinsky2018}. For ischemic subtypes it declines with onset-to-treatment time; for hemorrhage and mimics it is constant. With $t_n$ and $t_p$ the onset-to-needle and onset-to-puncture times in minutes,
+{\small\begin{align}
+P_{\text{LVO,IVT}}(t_n) &= \max\{0.1328,\; 0.2359 - 4\!\times\!10^{-4} t_n + 2\!\times\!10^{-7} t_n^2\},\\
+P_{\text{LVO,EVT}}(t_p) &= \max\{0.129,\; 0.3394 - 2\!\times\!10^{-4} t_p + 4\!\times\!10^{-8} t_p^2\},\\
 P_{\text{LVO}} &= P_{\text{LVO,IVT}} + (1 - P_{\text{LVO,IVT}})\,P_{\text{LVO,EVT}},\\
-P_{\text{nLVO}}(t_n) &= \max\{0.4622,\; 0.6343 - 0.0005\,t_n - 5\times10^{-8}\,t_n^2\},\\
+P_{\text{nLVO}}(t_n) &= \max\{0.4622,\; 0.6343 - 5\!\times\!10^{-4} t_n - 5\!\times\!10^{-8} t_n^2\},\\
 P_{\text{ICH}} &= 0.24, \qquad P_{\text{mimic}} = 0.90,
-\end{align}
-where EVT is available only if an EVT-capable centre is reachable (otherwise $P_{\text{LVO,EVT}} = 0$) and $t_n, t_p \geq 270$ minutes yield the floor values. \new{While the subtype is unknown the reward is the prior-weighted mixture $\sum_\sigma p_\sigma P_\sigma$; once known, the subtype-specific function applies. The planner therefore optimises expected outcome under subtype uncertainty rather than for a label it does not have (Reviewer 2's question).}
+\end{align}}
+where EVT is available only if an EVT-capable center is reachable (otherwise $P_{\text{LVO,EVT}} = 0$) and $t_n, t_p \geq 270$ minutes yield the floor values. While the subtype is unknown the reward is the prior-weighted mixture $\sum_\sigma p_\sigma P_\sigma$; once known, the subtype-specific function applies. The planner therefore optimizes expected outcome under subtype uncertainty rather than for a label it does not have.
