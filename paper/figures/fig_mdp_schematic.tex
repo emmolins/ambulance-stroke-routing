@@ -1,0 +1,50 @@
+% Schematic of the routing MDP: states, actions, information and timing.
+% \input{figures/fig_mdp_schematic} inside a figure* environment.
+\begin{tikzpicture}[
+  font=\footnotesize,
+  st/.style={draw, rounded corners=2pt, align=center, inner sep=4pt, minimum height=9mm},
+  field/.style={st, fill=gray!10},
+  evt/.style={st, fill=blue!10},
+  psc/.style={st, fill=orange!12},
+  nsc/.style={st, fill=green!10},
+  act/.style={-{Latex[length=2mm]}, thick},
+  xfer/.style={-{Latex[length=2mm]}, thick, dashed},
+  lbl/.style={font=\scriptsize, fill=white, inner sep=1.5pt, align=center},
+  note/.style={font=\scriptsize, align=left, text=black!70}]
+
+% ---- stage 0: field
+\node[field] (F) at (0,0) {Pickup location\\$(\ell_0,\ t_0,\ \text{unknown},\ \cdot)$};
+\node[note, below=1mm of F] {subtype $\sigma$ unobserved;\\planner uses prior $p_\sigma$};
+
+% ---- stage 1: first destination (subtype revealed)
+\node[evt] (E1) at (5.2, 1.9) {EVT-capable center\\$(\ell_E,\ t_0+\tau,\ \text{known},\ \sigma)$};
+\node[psc] (P1) at (5.2, 0)   {Thrombolysis-capable center\\$(\ell_P,\ t_0+\tau,\ \text{known},\ \sigma)$};
+\node[nsc] (N1) at (5.2,-1.9) {Non-stroke-center hospital\\$(\ell_N,\ t_0+\tau,\ \text{known},\ \sigma)$};
+
+\draw[act] (F) -- node[lbl, pos=0.42, above=2pt, sloped] {$a_1$: route to $\ell$, clock $+\tau(\ell_0,\ell)$} (E1);
+\draw[act] (F) -- (P1);
+\draw[act] (F) -- (N1);
+
+% imaging marker
+\draw[gray, dotted, thick] (3.55,-3.0) -- (3.55,3.2);
+\node[note, anchor=south] at (3.55,3.25) {arrival: imaging reveals $\sigma$};
+
+% ---- stage 2: transfer or stay
+\node[evt] (E2) at (10.6, 1.9) {EVT-capable center\\treat: needle $t_a{+}T_{\mathrm{DTN}}$,\\puncture $t_a{+}T_{\mathrm{DTP}}$ (direct) or\\$t_a{+}T_{\mathrm{DIDO}}{+}\tau'{+}T^{\mathrm{tr}}_{\mathrm{DTP}}$ (transfer)};
+\node[psc] (P2) at (10.6,-0.9) {Thrombolysis-capable center\\treat: needle $t_a{+}T_{\mathrm{DTN}}$;\\EVT only via onward transfer};
+
+\draw[act]  (E1) -- node[lbl] {$a_2$: stay} (E2);
+\draw[xfer] (P1.north east) -- node[lbl, pos=0.5, above=1pt] {transfer} (E2.west);
+\draw[act]  (P1) -- node[lbl, pos=0.6] {stay} (P2);
+\draw[xfer] (N1.east) -- node[lbl, pos=0.3, below=1pt] {transfer} (P2.west);
+\draw[xfer] (N1.north east) .. controls (8.0,-1.2) and (8.4,0.6) .. node[lbl, pos=0.75] {transfer} (E2.south west);
+\node[note, anchor=north] at (8.6,-2.45) {dashed: transfer, clock $+T_{\mathrm{DIDO}}+\tau'(\ell,\ell')$; at most one};
+
+% ---- reward
+\node[note, anchor=north west] at (7.6,-3.0) {Reward on the terminal state: $P_\sigma(t_n, t_p)$, the probability of mRS 0--1 at 90 days\\
+given onset-to-needle $t_n$ and onset-to-puncture $t_p$ (Section~III-F). The first decision maximizes\\
+$\sum_\sigma p_\sigma\,[\,R(s,a_1,s'_\sigma) + \max_{a_2} R(s'_\sigma,a_2,s''_\sigma)\,]$; the second is made with $\sigma$ known.};
+
+% ---- legend
+\node[note, anchor=north west] at (-1.2,-3.0) {Solid arrows: routing or stay actions.\\Dashed arrows: inter-facility transfer\\(one transfer at most; depth-2 search).\\$\tau$: road travel time from the routing engine.};
+\end{tikzpicture}
