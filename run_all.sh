@@ -16,7 +16,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 REGION="${1:-ca}"; REGION_UC=$(echo "$REGION" | tr a-z A-Z)
 START="${START:-1}"; STOP="${STOP:-99}"; PAR="${PAR:-4}"
-echo "ONSET_DIST=${ONSET_DIST:-lognormal (default)}  REGION=$REGION  START=$START  STOP=$STOP"
+echo "ONSET_DIST=${ONSET_DIST:-lognormal (default)}  FIELD_CATCHMENT_KM=${FIELD_CATCHMENT_KM:-none (default)}  REGION=$REGION  START=$START  STOP=$STOP"
 mkdir -p run_logs simulation_results decision_tree_output
 J="julia --project=."
 
@@ -67,6 +67,10 @@ if [[ $REGION == ca ]]; then
     step 24 uniform_reps      replicates src/CA_simulations.jl ONSET_DIST=uniform OUTPUT_TAG=_uniform
     step 25 uniform_pool      $J -e 'using CSV, DataFrames; fs = sort(filter(f -> occursin(r"^CA_simulation_results_rep\d+_uniform\.csv$", f), readdir("simulation_results"))); dfs = [begin d = CSV.read(joinpath("simulation_results", f), DataFrame); d.replicate .= parse(Int, match(r"_rep(\d+)_", f).captures[1]); d end for f in fs]; CSV.write("simulation_results/CA_simulation_results_uniform.csv", vcat(dfs...)); println(length(fs), " files pooled")'
     step 26 uniform_stats     env INPUT_PREFIX=CA_simulation_results_uniform $J src/CA_simulations_stats.jl
+    # Sensitivity cohort: 80 km first-leg catchment (the earlier EMS-catchment assumption)
+    step 27 catch80_reps      replicates src/CA_simulations.jl FIELD_CATCHMENT_KM=80 OUTPUT_TAG=_catch80
+    step 28 catch80_pool      $J -e 'using CSV, DataFrames; fs = sort(filter(f -> occursin(r"^CA_simulation_results_rep\d+_catch80\.csv$", f), readdir("simulation_results"))); dfs = [begin d = CSV.read(joinpath("simulation_results", f), DataFrame); d.replicate .= parse(Int, match(r"_rep(\d+)_", f).captures[1]); d end for f in fs]; CSV.write("simulation_results/CA_simulation_results_catch80.csv", vcat(dfs...)); println(length(fs), " files pooled")'
+    step 29 catch80_stats     env INPUT_PREFIX=CA_simulation_results_catch80 $J src/CA_simulations_stats.jl
 elif [[ $REGION == ri ]]; then
     export ORS_PORT="${ORS_PORT:-8081}"
     step 1  replicates        replicates src/RI_simulations.jl

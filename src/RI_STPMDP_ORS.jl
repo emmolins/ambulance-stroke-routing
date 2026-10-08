@@ -286,15 +286,22 @@ end
 # without editing code.
 const ORS_BASE = "http://localhost:$(get(ENV, "ORS_PORT", "8080"))"
 
+# Catchment radius for the first leg from the pickup location, in km. Default: none
+# (any hospital the road network reaches is a candidate first destination; long
+# first legs are penalised by the outcome curves, not by a hard cutoff). Set
+# FIELD_CATCHMENT_KM=80 to reproduce the earlier EMS-catchment assumption.
+const FIELD_CATCHMENT_M = let v = get(ENV, "FIELD_CATCHMENT_KM", "")
+    isempty(v) || lowercase(v) == "inf" ? Inf : 1000 * parse(Float64, v)
+end
+
 # Returns car travel time in minutes between two locations using ORS
 function calculate_travel_time(loc1::Location, loc2::Location)
-    # EMS catchment assumption: the initial transport from the pickup location
-    # is restricted to facilities within 80 km. Inter-facility transfers
-    # (hospital origin) carry no distance restriction; reachability is decided
-    # by the road network (ORS returns 404 for unroutable pairs).
-    if loc1.type == FIELD
-        dist_meters = haversine_distance(loc1, loc2)
-        if dist_meters > 80000
+    # Optional catchment radius for the first leg (FIELD_CATCHMENT_KM; off by
+    # default). Inter-facility transfers carry no distance restriction;
+    # reachability is decided by the road network (ORS returns 404 for
+    # unroutable pairs).
+    if loc1.type == FIELD && isfinite(FIELD_CATCHMENT_M)
+        if haversine_distance(loc1, loc2) > FIELD_CATCHMENT_M
             return nothing
         end
     end
@@ -341,8 +348,8 @@ end
 One ORS Matrix request returning car travel time (minutes) from `origin` to
 every hospital in `m.locations`. Replaces one Directions request per pair
 (~60 round trips and full route geometry per decision) with a single call.
-Unreachable destinations come back as `nothing`. The 80 km EMS catchment
-rule for pickup (FIELD) origins is applied here, as in calculate_travel_time.
+Unreachable destinations come back as `nothing`. The optional first-leg
+catchment radius (FIELD_CATCHMENT_KM) is applied here, as in calculate_travel_time.
 Falls back to per-pair Directions calls if the Matrix endpoint fails.
 """
 function fetch_travel_row(m::StrokeMDP, origin::Location)
@@ -368,7 +375,7 @@ function fetch_travel_row(m::StrokeMDP, origin::Location)
         return row
     end
     for (h, d) in zip(hospitals, durations)
-        if d === nothing || (origin.type == FIELD && haversine_distance(origin, h) > 80000)
+        if d === nothing || (origin.type == FIELD && isfinite(FIELD_CATCHMENT_M) && haversine_distance(origin, h) > FIELD_CATCHMENT_M)
             row[h.name] = nothing
         else
             row[h.name] = d / 60

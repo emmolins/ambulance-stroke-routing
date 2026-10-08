@@ -1,23 +1,13 @@
-  ├─ Time since onset ≤ 187.62?
-  │ ├─ Time to CSC ≤ 30.15?
-  │ │ └─ Decision: Route_CSC
-  │ │ ├─ Time since onset ≤ 170.94?
-  │ │ │ ├─ Diff CSC-PSC ≤ 46.72?
-  │ │ │ │ └─ Decision: Route_CSC
-  │ │ │ │ └─ Decision: Route_CSC
-  │ │ │ ├─ Time to CSC ≤ 33.38?
-  │ │ │ │ └─ Decision: Route_PSC
-  │ │ │ │ └─ Decision: Route_PSC
-  │ ├─ Ratio CSC/PSC ≤ 0.99?
-  │ │ ├─ Ratio CSC/NSC ≤ 0.96?
+  ├─ Time since onset ≤ 164.98?
+  │ └─ Decision: Route_CSC
+  │ ├─ Ratio CSC/PSC ≤ 1.02?
+  │ │ ├─ Diff CSC-NSC ≤ 0.56?
+  │ │ │ └─ Decision: Route_NSC
   │ │ │ └─ Decision: Route_CSC
-  │ │ │ ├─ Time since onset ≤ 213.73?
+  │ │ ├─ Time since onset ≤ 196.28?
+  │ │ │ ├─ Time to CSC ≤ 35.71?
   │ │ │ │ └─ Decision: Route_CSC
-  │ │ │ │ └─ Decision: Route_NSC
-  │ │ ├─ Ratio PSC/NSC ≤ 1.01?
-  │ │ │ ├─ Time since onset ≤ 197.17?
   │ │ │ │ └─ Decision: Route_PSC
-  │ │ │ │ └─ Decision: Route_PSC
-  │ │ │ ├─ Time since onset ≤ 210.78?
+  │ │ │ ├─ Ratio PSC/NSC ≤ 1.02?
   │ │ │ │ └─ Decision: Route_PSC
   │ │ │ │ └─ Decision: Route_NSC
