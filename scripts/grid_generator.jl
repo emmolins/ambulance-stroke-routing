@@ -94,7 +94,9 @@ function evaluate_policy_realized(mdp, planner_state, realized_type, policy_fn)
                                KNOWN, realized_type)
         next_state = rand(transition(mdp, s_known, action))
         r = reward(mdp, s_known, action, next_state)
-        tt = calculate_travel_time(planner_state.loc, next_state.loc)
+        # Same value as calculate_travel_time, but served from the cached matrix row
+        # (avoids 4 per-pair Directions calls per patient).
+        tt = cached_travel_time(mdp, planner_state.loc, next_state.loc)
         tt === nothing && return (nothing, "ORS could not route")
         return ((action_str, r, tt), nothing)
     catch e

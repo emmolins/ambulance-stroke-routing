@@ -1,0 +1,2 @@
+cell_i,cell_j,start_lat,start_lon,t_onset,stroke_type,optimal_action,optimal_action_reward,travel_time_optimal,nearest_hospital_action,nearest_hospital_reward,travel_time_nh,heuristic_1_action,heuristic_1_reward,travel_time_h1,heuristic_2_action,heuristic_2_reward,travel_time_h2
+53,139,38.372210695909615,-122.44497543950231,184.97487762702144,HEMORRHAGIC,ROUTE_SonomaValleyHospital,0.24,34.88,ROUTE_SonomaValleyHospital,0.24,34.88,ROUTE_JohnMuirMedicalCenterWalnutCreekCampus,0.24,88.185,ROUTE_SonomaValleyHospital,0.24,34.88

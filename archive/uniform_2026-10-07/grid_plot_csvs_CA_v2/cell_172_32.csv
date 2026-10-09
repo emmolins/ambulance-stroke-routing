@@ -1,0 +1,2 @@
+cell_i,cell_j,start_lat,start_lon,t_onset,stroke_type,optimal_action,optimal_action_reward,travel_time_optimal,nearest_hospital_action,nearest_hospital_reward,travel_time_nh,heuristic_1_action,heuristic_1_reward,travel_time_h1,heuristic_2_action,heuristic_2_reward,travel_time_h2
+172,32,37.50257917478027,-121.59937214376372,232.31583062950824,MIMIC,ROUTE_SutterEdenMedicalCenter,0.9,83.22333333333333,ROUTE_StanfordHealthCareTriValley,0.9,71.825,ROUTE_SutterEdenMedicalCenter,0.9,83.22333333333333,ROUTE_StanfordHealthCareTriValley,0.9,71.825

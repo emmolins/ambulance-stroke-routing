@@ -40,6 +40,11 @@ default(fontfamily = "Computer Modern", guidefontsize = 8, tickfontsize = 7, leg
 sz(wpt, hpt) = (round(Int, wpt * 100 / 72), round(Int, hpt * 100 / 72))
 
 d = CSV.read(joinpath(SR, "CA_simulation_results.csv"), DataFrame)
+# first split of the fitted tree (minutes since onset), read from decision_tree_simple.txt
+const TREE_SPLIT = let f = "decision_tree_output/decision_tree_simple.txt"
+    m = isfile(f) ? match(r"Time since onset\s*[≤<=]+\s*([0-9.]+)", read(f, String)) : nothing
+    m === nothing ? 165.0 : round(parse(Float64, m.captures[1]))
+end
 println("CA results: ", nrow(d), " patients, ", length(unique(d.replicate)), " replicates")
 
 # between-replicate mean and t_9 half-width of a paired difference
@@ -68,8 +73,8 @@ function fig_onset()
         plot!(p, mids, m, ribbon = h, fillalpha = 0.15, color = COL[k], linestyle = ls, linewidth = lw,
               marker = :circle, markersize = 2.5, label = LAB[k])
     end
-    vline!(p, [188], color = :gray40, linestyle = :dot, linewidth = 0.6, label = "")
-    annotate!(p, 191, 0.045, text("tree split\n188 min", 6, :gray30, :left))
+    vline!(p, [TREE_SPLIT], color = :gray40, linestyle = :dot, linewidth = 0.6, label = "")
+    annotate!(p, TREE_SPLIT + 3, 0.028, text("tree split\n$(Int(TREE_SPLIT)) min", 6, :gray30, :left))
     savefig(p, joinpath(OUT, "fig_gain_by_onset.pdf")); println("✓ fig_gain_by_onset.pdf")
 end
 
@@ -89,7 +94,7 @@ function fig_space()
         scatter!(p, g.Time_since_onset_min, g.Diff_CSC_PSC, color = tier[a][2], markersize = 2.2, markeralpha = 0.75,
                  label = "$(tier[a][1]) (n = $(nrow(g)))")
     end
-    vline!(p, [188], color = :gray40, linestyle = :dot, linewidth = 0.6, label = "")
+    vline!(p, [TREE_SPLIT], color = :gray40, linestyle = :dot, linewidth = 0.6, label = "")
     hline!(p, [0], color = :gray40, linewidth = 0.6, label = "")
     savefig(p, joinpath(OUT, "fig_decision_space.pdf")); println("✓ fig_decision_space.pdf")
 end
@@ -108,8 +113,8 @@ function fig_dido()
         push!(xs, dd); push!(ms, m); push!(hs, h)
     end
     p = plot(size = sz(W1, 160), xlabel = "Door-in-door-out time at sending hospital (min)",
-             ylabel = "MDP gain over nearest-hospital\nrouting, P(mRS 0–1)", legend = false, ylims = (0, :auto))
-    vspan!(p, [89, 175], color = :gray85, alpha = 0.6, label = "")
+             ylabel = "MDP gain over nearest-hospital\nrouting, P(mRS 0–1)", legend = false, ylims = (0, 0.05), xlims = (50, 185))
+    vspan!(p, [89, 175], color = :gray92, linealpha = 0, label = "")
     annotate!(p, 132, 0.002, text("registry IQR", 6, :gray30))
     vline!(p, [121], color = :gray40, linestyle = :dot, linewidth = 0.6)
     plot!(p, xs, ms, yerror = hs, color = COL[:mdp], marker = :circle, markersize = 3)
@@ -127,6 +132,7 @@ function fig_forest()
     for b in (70, 80, 90, 110, 120, 130); push!(rows, ("Travel-time bias ×$(b/100)", "CA_simulation_results_bias$(b).csv")); end
     push!(rows, ("EVT on-site definition", "CA_simulation_results_evtonsite.csv"))
     push!(rows, ("Uniform onset cohort", "CA_simulation_results_uniform.csv"))
+    push!(rows, ("80 km first-leg catchment", "CA_simulation_results_catch80.csv"))
     labs = String[]; ms = Float64[]; hs = Float64[]
     for (lab, f) in rows
         path = joinpath(SR, f); isfile(path) || (println("  missing $f, skipping"); continue)
@@ -135,7 +141,7 @@ function fig_forest()
         push!(labs, lab); push!(ms, m); push!(hs, h)
     end
     n = length(labs); y = collect(n:-1:1)
-    p = plot(size = sz(W1, 40 + 14n), xlabel = "MDP gain over nearest-hospital routing (mean, 95% CI)",
+    p = plot(size = sz(W1, 40 + 14n), xlabel = "MDP gain over nearest-hospital routing",
              yticks = (y, labs), legend = false, ylims = (0.4, n + 0.6), grid = :x)
     vline!(p, [ms[1]], color = :gray40, linestyle = :dot, linewidth = 0.6)
     scatter!(p, ms, y, xerror = hs, color = COL[:mdp], markersize = 3)
@@ -148,9 +154,10 @@ end
 shortname(h) = replace(String(h), "ROUTE_" => "", "MedicalCenter" => " MC", "Campus" => "", "Sutter" => " (Sutter)",
                         "KaiserFoundationHospital" => "Kaiser ", "HealthCare" => "", r"([a-z])([A-Z])" => s"\1 \2")
 function fig_load()
-    sm = sort(countmap(d[!, ACT[:mdp]]), byvalue = true, rev = true)
-    sh = sort(countmap(d[!, ACT[:h1]]), byvalue = true, rev = true)
-    top = unique(vcat(collect(keys(sh))[1:min(6, end)], collect(keys(sm))[1:min(8, end)]))[1:10]
+    cm = countmap(d[!, ACT[:mdp]]); ch = countmap(d[!, ACT[:h1]])
+    ksm = first.(sort(collect(cm), by = last, rev = true)); ksh = first.(sort(collect(ch), by = last, rev = true))
+    top = unique(vcat(ksh[1:min(6, end)], ksm[1:min(8, end)]))[1:10]
+    sm, sh = cm, ch
     n = length(top); y = collect(n:-1:1)
     a = [100 * get(sh, h, 0) / nrow(d) for h in top]; b = [100 * get(sm, h, 0) / nrow(d) for h in top]
     p = plot(size = sz(W1, 200), xlabel = "Share of patients sent to hospital (%)", yticks = (y, shortname.(top)),

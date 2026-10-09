@@ -1,0 +1,2 @@
+cell_i,cell_j,start_lat,start_lon,t_onset,stroke_type,optimal_action,optimal_action_reward,travel_time_optimal,nearest_hospital_action,nearest_hospital_reward,travel_time_nh,heuristic_1_action,heuristic_1_reward,travel_time_h1,heuristic_2_action,heuristic_2_reward,travel_time_h2
+14,94,38.00668618513857,-122.71536255773307,110.42738678551525,LVO,ROUTE_UCSFMedicalCenter,0.4014483416176892,63.94666666666667,ROUTE_MarinHealthMedicalCenter,0.2754810745158166,31.32,ROUTE_UCSFMedicalCenter,0.4014483416176892,63.94666666666667,ROUTE_MarinHealthMedicalCenter,0.2754810745158166,31.32

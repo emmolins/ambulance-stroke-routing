@@ -1,0 +1,2 @@
+cell_i,cell_j,start_lat,start_lon,t_onset,stroke_type,optimal_action,optimal_action_reward,travel_time_optimal,nearest_hospital_action,nearest_hospital_reward,travel_time_nh,heuristic_1_action,heuristic_1_reward,travel_time_h1,heuristic_2_action,heuristic_2_reward,travel_time_h2
+36,76,37.86231258734697,-122.56511219301458,200.6097659345326,NLVO,ROUTE_SutterEdenMedicalCenter,0.4622,67.63000000000001,ROUTE_MarinHealthMedicalCenter,0.4622,26.798333333333336,ROUTE_UCSFMedicalCenter,0.4622,35.92333333333333,ROUTE_MarinHealthMedicalCenter,0.4622,26.798333333333336

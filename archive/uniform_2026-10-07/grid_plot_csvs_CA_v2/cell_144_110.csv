@@ -1,0 +1,2 @@
+cell_i,cell_j,start_lat,start_lon,t_onset,stroke_type,optimal_action,optimal_action_reward,travel_time_optimal,nearest_hospital_action,nearest_hospital_reward,travel_time_nh,heuristic_1_action,heuristic_1_reward,travel_time_h1,heuristic_2_action,heuristic_2_reward,travel_time_h2
+144,110,38.13972869284189,-121.79337413891515,248.90705310428774,HEMORRHAGIC,ROUTE_SutterEdenMedicalCenter,0.24,94.81166666666667,ROUTE_NorthBayMedicalCenter,0.24,43.31333333333334,ROUTE_JohnMuirMedicalCenterWalnutCreekCampus,0.24,70.34833333333333,ROUTE_NorthBayMedicalCenter,0.24,43.31333333333334

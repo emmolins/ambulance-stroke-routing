@@ -1,0 +1,2 @@
+cell_i,cell_j,start_lat,start_lon,t_onset,stroke_type,optimal_action,optimal_action_reward,travel_time_optimal,nearest_hospital_action,nearest_hospital_reward,travel_time_nh,heuristic_1_action,heuristic_1_reward,travel_time_h1,heuristic_2_action,heuristic_2_reward,travel_time_h2
+94,133,38.32741971537555,-122.14700503500121,105.37594592009287,MIMIC,ROUTE_JohnMuirMedicalCenterWalnutCreekCampus,0.9,50.848333333333336,ROUTE_NorthBayMedicalCenter,0.9,22.38,ROUTE_JohnMuirMedicalCenterWalnutCreekCampus,0.9,50.848333333333336,ROUTE_NorthBayMedicalCenter,0.9,22.38

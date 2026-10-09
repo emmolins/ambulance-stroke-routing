@@ -1,0 +1,2 @@
+cell_i,cell_j,start_lat,start_lon,t_onset,stroke_type,optimal_action,optimal_action_reward,travel_time_optimal,nearest_hospital_action,nearest_hospital_reward,travel_time_nh,heuristic_1_action,heuristic_1_reward,travel_time_h1,heuristic_2_action,heuristic_2_reward,travel_time_h2
+76,190,38.78450496095118,-122.27851108391475,196.22135794851857,NLVO,ROUTE_AdventistHealthStHelena,0.4622,81.56666666666666,ROUTE_AdventistHealthStHelena,0.4622,81.56666666666666,ROUTE_AdventistHealthStHelena,0.4622,81.56666666666666,ROUTE_AdventistHealthStHelena,0.4622,81.56666666666666
