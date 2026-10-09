@@ -67,3 +67,5 @@ paper/build.log
 # Desktop app output folder
 Claude outputs/
 run_logs/
+paper/main.pdf
+archive/

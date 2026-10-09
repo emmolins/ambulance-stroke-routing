@@ -8,6 +8,7 @@
 # to paper/figures/. Style: IEEE single column 3.5 in (252 pt) or double 7.16 in,
 # 8 pt serif type, one colour per policy throughout, colourblind-safe.
 # =============================================================================
+using Printf
 using CSV, DataFrames, Statistics, StatsBase, JSON, Plots
 gr()
 
@@ -63,6 +64,7 @@ function fig_onset()
     p = plot(size = sz(W1, 170), xlabel = "Onset-to-pickup time (min)",
              ylabel = "Gain over nearest-hospital routing\nP(mRS 0–1)", legend = :topright, xlims = (30, 270))
     hline!(p, [0], color = :gray40, linewidth = 0.6, label = "")
+    ytop = 0.0
     for (k, ls, lw) in ((:h2, :solid, 1.2), (:h1, :dash, 1.2), (:mdp, :solid, 2.0))
         diff = d[!, RW[k]] .- d[!, RW[:nh]]
         m = Float64[]; h = Float64[]
@@ -72,10 +74,31 @@ function fig_onset()
         end
         plot!(p, mids, m, ribbon = h, fillalpha = 0.15, color = COL[k], linestyle = ls, linewidth = lw,
               marker = :circle, markersize = 2.5, label = LAB[k])
+        ytop = max(ytop, maximum(m .+ h))
     end
+    ylims!(p, (-0.004, 1.45 * ytop))   # headroom keeps the legend clear of the curves
     vline!(p, [TREE_SPLIT], color = :gray40, linestyle = :dot, linewidth = 0.6, label = "")
-    annotate!(p, TREE_SPLIT + 3, 0.028, text("tree split\n$(Int(TREE_SPLIT)) min", 6, :gray30, :left))
+    annotate!(p, TREE_SPLIT + 3, 0.5 * ytop, text("tree split\n$(Int(TREE_SPLIT)) min", 6, :gray30, :left))
     savefig(p, joinpath(OUT, "fig_gain_by_onset.pdf")); println("✓ fig_gain_by_onset.pdf")
+end
+
+# ---------------------------------------------------------------------------
+# Fig. dist: distribution of per-patient outcome probability, nearest vs MDP
+# (planning reward, all replicates), with means marked
+# ---------------------------------------------------------------------------
+function fig_dist()
+    a = d[!, RW[:nh]]; b = d[!, RW[:mdp]]
+    lo = floor(min(minimum(a), minimum(b)) / 0.01) * 0.01; hi = ceil(max(maximum(a), maximum(b)) / 0.01) * 0.01
+    edges = lo:0.005:hi
+    p = plot(size = sz(W1, 165), xlabel = "Probability of excellent outcome, P(mRS 0–1)", ylabel = "Patients",
+             legend = :topleft, xlims = (lo, hi), left_margin = 3Plots.mm)
+    histogram!(p, a, bins = edges, color = COL[:nh], fillalpha = 0.55, linecolor = :white, linewidth = 0.3,
+               label = "Nearest hospital")
+    histogram!(p, b, bins = edges, color = COL[:mdp], fillalpha = 0.55, linecolor = :white, linewidth = 0.3,
+               label = "MDP policy")
+    vline!(p, [mean(a)], color = COL[:nh], linestyle = :dash, linewidth = 1.2, label = "Mean, nearest hospital ($(round(mean(a), digits = 3)))")
+    vline!(p, [mean(b)], color = COL[:mdp], linestyle = :dash, linewidth = 1.2, label = "Mean, MDP policy ($(round(mean(b), digits = 3)))")
+    savefig(p, joinpath(OUT, "fig_outcome_dist.pdf")); println("✓ fig_outcome_dist.pdf")
 end
 
 # ---------------------------------------------------------------------------
@@ -85,10 +108,11 @@ function fig_space()
     tr = CSV.read("decision_tree_output/training_data_detailed.csv", DataFrame)
     tier = Dict("Route_CSC" => ("EVT-capable center", COL[:mdp]),
                 "Route_PSC" => ("Thrombolysis-capable center", COL[:h1]),
-                "Route_NSC" => ("Non-stroke-center hospital", COL[:h2]))
-    p = plot(size = sz(W1, 190), xlabel = "Onset-to-pickup time (min)",
-             ylabel = "Extra road time to EVT-capable center\nover thrombolysis-capable center (min)",
-             legend = :outerbottom, legend_columns = 2)
+                "Route_NSC" => ("Non-stroke center", COL[:h2]))
+    ymax = maximum(tr.Diff_CSC_PSC)
+    p = plot(size = sz(W1, 180), xlabel = "Onset-to-pickup time (min)",
+             ylabel = "Extra road time to EVT-capable\ncenter vs. thrombolysis center (min)",
+             legend = :topright, left_margin = 4Plots.mm, xlims = (30, 270), ylims = (-3, 1.4 * ymax))
     for a in ("Route_CSC", "Route_PSC", "Route_NSC")
         g = tr[tr.Predicted_Action .== a, :]
         scatter!(p, g.Time_since_onset_min, g.Diff_CSC_PSC, color = tier[a][2], markersize = 2.2, markeralpha = 0.75,
@@ -131,8 +155,6 @@ function fig_forest()
     for s in (10, 20); push!(rows, ("Travel-time noise σ = 0.$(s)", "CA_simulation_results_noise$(s).csv")); end
     for b in (70, 80, 90, 110, 120, 130); push!(rows, ("Travel-time bias ×$(b/100)", "CA_simulation_results_bias$(b).csv")); end
     push!(rows, ("EVT on-site definition", "CA_simulation_results_evtonsite.csv"))
-    push!(rows, ("Uniform onset cohort", "CA_simulation_results_uniform.csv"))
-    push!(rows, ("80 km first-leg catchment", "CA_simulation_results_catch80.csv"))
     labs = String[]; ms = Float64[]; hs = Float64[]
     for (lab, f) in rows
         path = joinpath(SR, f); isfile(path) || (println("  missing $f, skipping"); continue)
@@ -151,31 +173,42 @@ end
 # ---------------------------------------------------------------------------
 # Fig. load: share of patients at the busiest hospitals, MDP vs nearest-EVT rule
 # ---------------------------------------------------------------------------
-shortname(h) = replace(String(h), "ROUTE_" => "", "MedicalCenter" => " MC", "Campus" => "", "Sutter" => " (Sutter)",
-                        "KaiserFoundationHospital" => "Kaiser ", "HealthCare" => "", r"([a-z])([A-Z])" => s"\1 \2")
+const SHORT = Dict("ROUTE_JohnMuirMedicalCenterWalnutCreekCampus" => "John Muir, Walnut Creek",
+                   "ROUTE_SutterEdenMedicalCenter"                => "Sutter Eden",
+                   "ROUTE_CPMCDaviesCampusSutter"                 => "CPMC Davies",
+                   "ROUTE_UCSFMedicalCenter"                      => "UCSF",
+                   "ROUTE_MillsPeninsulaMedicalCenterSutter"      => "Mills-Peninsula",
+                   "ROUTE_KaiserFoundationHospitalRedwoodCity"    => "Kaiser Redwood City",
+                   "ROUTE_RegionalMedicalCenterOfSanJose"         => "Regional MC San Jose",
+                   "ROUTE_ElCaminoHealthMountainView"             => "El Camino, Mountain View")
+shortname(h) = get(SHORT, String(h), replace(String(h), "ROUTE_" => "", "MedicalCenter" => " MC", "Campus" => "",
+                   "Sutter" => "", "KaiserFoundationHospital" => "Kaiser ", "HealthCare" => "", r"([a-z])([A-Z])" => s"\1 \2"))
 function fig_load()
     cm = countmap(d[!, ACT[:mdp]]); ch = countmap(d[!, ACT[:h1]])
     ksm = first.(sort(collect(cm), by = last, rev = true)); ksh = first.(sort(collect(ch), by = last, rev = true))
-    top = unique(vcat(ksh[1:min(6, end)], ksm[1:min(8, end)]))[1:10]
+    top = unique(vcat(ksh[1:min(6, end)], ksm[1:min(8, end)])); top = top[1:min(10, length(top))]
     sm, sh = cm, ch
     n = length(top); y = collect(n:-1:1)
     a = [100 * get(sh, h, 0) / nrow(d) for h in top]; b = [100 * get(sm, h, 0) / nrow(d) for h in top]
-    p = plot(size = sz(W1, 200), xlabel = "Share of patients sent to hospital (%)", yticks = (y, shortname.(top)),
-             legend = :outerbottom, grid = :x, ylims = (0.4, n + 0.6))
+    p = plot(size = sz(W1, 185), xlabel = "Share of patients (%)", yticks = (y, shortname.(top)),
+             legend = :outerbottom, legend_columns = 1, grid = :x, ylims = (0.4, n + 0.6), xlims = (0, 1.08 * max(maximum(a), maximum(b))),
+             left_margin = 1Plots.mm, bottom_margin = 1Plots.mm)
     for i in 1:n; plot!(p, [a[i], b[i]], [y[i], y[i]], color = :gray75, linewidth = 1.2, label = ""); end
-    scatter!(p, a, y, color = COL[:h1], markersize = 3.5, label = "$(LAB[:h1]) ($(length(sh)) hospitals used)")
-    scatter!(p, b, y, color = COL[:mdp], markersize = 3.5, label = "$(LAB[:mdp]) ($(length(sm)) hospitals used)")
+    scatter!(p, a, y, color = COL[:h1], markersize = 3.5, label = "Nearest EVT-capable center ($(length(sh)) hospitals)")
+    scatter!(p, b, y, color = COL[:mdp], markersize = 3.5, label = "MDP policy ($(length(sm)) hospitals)")
     savefig(p, joinpath(OUT, "fig_hospital_load.pdf")); println("✓ fig_hospital_load.pdf")
 end
 
 # ---------------------------------------------------------------------------
 # Fig. map: binned mean paired difference on a lon/lat grid, with the Bay Area outline
 # ---------------------------------------------------------------------------
-function outline!(p)
-    gj = JSON.parsefile("sampled_points/bay_area_outline.geojson")
+function outline!(p, file = "sampled_points/bay_area_outline.geojson")
+    gj = JSON.parsefile(file)
     for f in gj["features"]
-        g = f["geometry"]; polys = g["type"] == "MultiPolygon" ? g["coordinates"] : [g["coordinates"]]
-        for poly in polys, ring in poly
+        g = f["geometry"]
+        rings = g["type"] == "MultiPolygon" ? [ring for poly in g["coordinates"] for ring in poly] :
+                g["type"] == "Polygon" ? g["coordinates"] : [g["coordinates"]]
+        for ring in rings
             xs = [pt[1] for pt in ring]; ys = [pt[2] for pt in ring]
             plot!(p, xs, ys, color = :gray55, linewidth = 0.5, label = "")
         end
@@ -200,9 +233,10 @@ function fig_map()
     ps = []
     for (v, ttl, vmax) in panels
         xs, ys, M = binned(lon, lat, v)
-        p = heatmap(xs, ys, M, color = :RdBu_r, clims = (-vmax, vmax), aspect_ratio = 1 / cosd(37.8), title = ttl,
+        p = heatmap(xs, ys, M, color = cgrad(:RdBu, rev = true), clims = (-vmax, vmax), aspect_ratio = 1 / cosd(37.8), title = ttl,
                     xlims = (-122.85, -121.4), ylims = (37.2, 38.55), xticks = false, yticks = false, grid = false,
-                    colorbar_title = "Mean paired difference, P(mRS 0–1)", framestyle = :none)
+                    colorbar_title = "ΔP(mRS 0–1)", colorbar_titlefontsize = 7, colorbar_tickfontsize = 6,
+                    right_margin = 3Plots.mm, framestyle = :none)
         outline!(p)
         for (nm, x, y) in (("San Francisco", -122.42, 37.77), ("San Jose", -121.89, 37.34), ("Santa Rosa", -122.71, 38.44), ("Livermore", -121.77, 37.68))
             scatter!(p, [x], [y], color = :black, markersize = 2, label = ""); annotate!(p, x + 0.03, y + 0.02, text(nm, 6, :left))
@@ -213,10 +247,207 @@ function fig_map()
     savefig(p, joinpath(OUT, "fig_maps_binned.pdf")); println("✓ fig_maps_binned.pdf")
 end
 
+# ---------------------------------------------------------------------------
+# Figs. maps: per-cell outcome under two policies, and paired differences,
+# drawn at the native grid resolution from sampled_points/CA_grid_cell_means.csv
+# with a k x k neighbourhood mean (k = 5, about 3 km) to suppress the
+# five-patient-per-cell sampling noise. Cell geometry comes from the grid mask.
+# ---------------------------------------------------------------------------
+const MASK_CSV  = "sampled_points/bay_area_grid_cells.csv"
+const CELLS_CSV = "sampled_points/CA_grid_cell_means.csv"
+# (name, lon, lat, side of the dot the label goes on)
+const CITIES = [("San Francisco", -122.419, 37.775, :l), ("Oakland", -122.271, 37.804, :r), ("San Jose", -121.886, 37.338, :r),
+                ("Fremont", -121.989, 37.548, :r), ("Palo Alto", -122.143, 37.442, :l), ("Livermore", -121.768, 37.682, :r),
+                ("Antioch", -121.806, 38.005, :r), ("Concord", -122.031, 37.978, :l), ("Vallejo", -122.257, 38.104, :l),
+                ("San Rafael", -122.531, 37.974, :l), ("Santa Rosa", -122.714, 38.440, :r), ("Napa", -122.286, 38.297, :r)]
+
+function cell_geometry()
+    mask = CSV.read(MASK_CSV, DataFrame)
+    imin, imax = extrema(mask.cell_i); jmin, jmax = extrema(mask.cell_j)
+    dlon = mask.lon_hi[1] - mask.lon_lo[1]; dlat = mask.lat_hi[1] - mask.lat_lo[1]
+    lon0 = minimum(mask.lon_lo); lat0 = minimum(mask.lat_lo)
+    X = lon0 .+ ((imin:imax) .- imin .+ 0.5) .* dlon
+    Y = lat0 .+ ((jmin:jmax) .- jmin .+ 0.5) .* dlat
+    return (imin = imin, jmin = jmin, X = collect(X), Y = collect(Y),
+            ext = (lon0, lon0 + length(X) * dlon, lat0, lat0 + length(Y) * dlat))
+end
+function cell_matrix(cells::DataFrame, col::Symbol, g)
+    M = fill(NaN, length(g.Y), length(g.X))
+    for r in eachrow(cells); M[r.cell_j - g.jmin + 1, r.cell_i - g.imin + 1] = r[col]; end
+    return M
+end
+function smooth_nan(M::Matrix{Float64}; k::Int = 5)
+    r = k ÷ 2; nj, ni = size(M); out = fill(NaN, nj, ni)
+    for j in 1:nj, i in 1:ni
+        isnan(M[j, i]) && continue
+        s = 0.0; c = 0
+        for dj in -r:r, di in -r:r
+            jj = j + dj; ii = i + di
+            (1 <= jj <= nj && 1 <= ii <= ni && !isnan(M[jj, ii])) || continue
+            s += M[jj, ii]; c += 1
+        end
+        out[j, i] = s / c
+    end
+    return out
+end
+degfmt(v, lat) = (d = floor(Int, abs(v)); m = round(Int, (abs(v) - d) * 60); m == 60 && (d += 1; m = 0);
+                  @sprintf("%d°%02d'%s", d, m, lat ? (v >= 0 ? "N" : "S") : (v >= 0 ? "E" : "W")))
+function map_panel(M, g, ttl; color, clims, colorbar, cbtitle)
+    p = heatmap(g.X, g.Y, M, color = color, clims = clims, colorbar = colorbar, colorbar_title = cbtitle,
+                colorbar_titlefontsize = 7, colorbar_tickfontsize = 6, title = ttl, titlefontsize = 8,
+                xlims = (g.ext[1], g.ext[2]), ylims = (g.ext[3], g.ext[4]), aspect_ratio = 1 / cosd(38.0),
+                xticks = -122.5:0.5:-121.5, yticks = 37.5:0.5:38.5, tickfontsize = 6,
+                xformatter = v -> degfmt(v, false), yformatter = v -> degfmt(v, true),
+                framestyle = :box, grid = true, gridalpha = 0.35, gridlinewidth = 0.3, left_margin = 1Plots.mm)
+    outline!(p)
+    for (nm, x, y, side) in CITIES
+        scatter!(p, [x], [y], color = :black, markersize = 2, label = "")
+        dx = side == :r ? 0.015 : -0.015
+        w = 0.0165 * length(nm); x0 = side == :r ? x + dx : x + dx - w
+        plot!(p, Shape([x0, x0 + w, x0 + w, x0], [y - 0.013, y - 0.013, y + 0.013, y + 0.013]),
+              fillcolor = :white, fillalpha = 0.9, linecolor = :gray60, linewidth = 0.3, label = "")
+        annotate!(p, x0 + w / 2, y, text(nm, 6, :center))
+    end
+    return p
+end
+function fig_maps()
+    isfile(CELLS_CSV) || (println("  missing $CELLS_CSV, skipping maps"); return)
+    cells = CSV.read(CELLS_CSV, DataFrame); g = cell_geometry()
+    println("  map source: $CELLS_CSV ($(nrow(cells)) cells)")
+    # (a) outcome under nearest-hospital routing and under the MDP, shared scale
+    A = smooth_nan(cell_matrix(cells, :reward_nearest, g)); B = smooth_nan(cell_matrix(cells, :reward_optimal, g))
+    v = filter(!isnan, vcat(vec(A), vec(B)))
+    cl = (floor(quantile(v, 0.01) * 100) / 100, ceil(quantile(v, 0.99) * 100) / 100)
+    p1 = map_panel(A, g, "Nearest-hospital routing"; color = cgrad(:YlOrRd), clims = cl, colorbar = false, cbtitle = "")
+    p2 = map_panel(B, g, "MDP policy"; color = cgrad(:YlOrRd), clims = cl, colorbar = true, cbtitle = "P(mRS 0–1)")
+    savefig(plot(p1, p2, layout = (1, 2), size = sz(W2, 250)), joinpath(OUT, "fig_maps_outcome.pdf")); println("✓ fig_maps_outcome.pdf")
+    # (b) paired differences, each with its own symmetric scale
+    ps = []
+    for (col, ttl) in ((:diff_opt_minus_nearest, "MDP minus nearest hospital"), (:diff_opt_minus_heur1, "MDP minus nearest EVT-capable center"))
+        D = smooth_nan(cell_matrix(cells, col, g)); m = ceil(quantile(abs.(filter(!isnan, vec(D))), 0.99) * 1000) / 1000
+        push!(ps, map_panel(D, g, ttl; color = cgrad(:RdBu, rev = true), clims = (-m, m), colorbar = true, cbtitle = "ΔP(mRS 0–1)"))
+    end
+    savefig(plot(ps..., layout = (1, 2), size = sz(W2, 250)), joinpath(OUT, "fig_maps_diff.pdf")); println("✓ fig_maps_diff.pdf")
+end
+
+# ---------------------------------------------------------------------------
+# Fig. policy: the MDP's first-destination tier from every cell at fixed onset
+# times (scripts/policy_map.jl), with hospitals overlaid
+# ---------------------------------------------------------------------------
+const TIERCOL = Dict("CSC" => COL[:mdp], "PSC" => COL[:h1], "NSC" => COL[:h2])
+function hospitals_ca()
+    h = CSV.read("hospitals/CA_hospitals.csv", DataFrame)
+    return [(String(r.Hospital), r.Lon, r.Lat, String(r.Type)) for r in eachrow(h)]
+end
+function fig_policy()
+    f = "sampled_points/CA_policy_map.csv"
+    isfile(f) || (println("  missing $f, skipping"); return)
+    pm = CSV.read(f, DataFrame); g = cell_geometry(); hs = hospitals_ca()
+    ts = sort(unique(pm.t_onset)); ps = []
+    for t in ts
+        sub = pm[pm.t_onset .== t, :]
+        M = fill(NaN, length(g.Y), length(g.X))
+        for r in eachrow(sub); M[r.cell_j - g.jmin + 1, r.cell_i - g.imin + 1] = r.tier == "CSC" ? 1.0 : r.tier == "PSC" ? 2.0 : 3.0; end
+        p = heatmap(g.X, g.Y, M, color = cgrad([COL[:mdp], COL[:h1], COL[:h2]], categorical = true), clims = (0.5, 3.5),
+                    colorbar = false, title = "Pickup $(Int(t)) min after onset", titlefontsize = 8, alpha = 0.75,
+                    xlims = (g.ext[1], g.ext[2]), ylims = (g.ext[3], g.ext[4]), aspect_ratio = 1 / cosd(38.0),
+                    xticks = -122.5:0.5:-121.5, yticks = 37.5:0.5:38.5, tickfontsize = 6,
+                    xformatter = v -> degfmt(v, false), yformatter = v -> degfmt(v, true),
+                    framestyle = :box, grid = true, gridalpha = 0.35, gridlinewidth = 0.3, left_margin = 1Plots.mm)
+        outline!(p)
+        for (nm, x, y, tier) in hs
+            tier == "NSC" && continue
+            scatter!(p, [x], [y], marker = tier == "CSC" ? :utriangle : :circle, markersize = tier == "CSC" ? 4.5 : 3,
+                     color = :white, markerstrokecolor = :black, markerstrokewidth = 0.6, label = "")
+        end
+        push!(ps, p)
+    end
+    # legend panel row built from empty series
+    leg = plot(framestyle = :none, legend = :top, legend_columns = 5, size = sz(W2, 20), legendfontsize = 7)
+    for (lab, c) in (("to EVT-capable center", COL[:mdp]), ("to thrombolysis-capable center", COL[:h1]), ("to non-stroke center", COL[:h2]))
+        plot!(leg, [NaN], [NaN], linewidth = 8, color = c, alpha = 0.75, label = lab)
+    end
+    scatter!(leg, [NaN], [NaN], marker = :utriangle, color = :white, markerstrokecolor = :black, label = "EVT-capable center")
+    scatter!(leg, [NaN], [NaN], marker = :circle, color = :white, markerstrokecolor = :black, label = "thrombolysis-capable center")
+    p = plot(plot(ps..., layout = (1, length(ps))), leg, layout = @layout([a{0.92h}; b{0.08h}]), size = sz(W2, 215))
+    savefig(p, joinpath(OUT, "fig_policy_map.pdf")); println("✓ fig_policy_map.pdf")
+end
+
+# ---------------------------------------------------------------------------
+# Fig. times: onset-to-needle (ischemic patients) and onset-to-puncture (LVO)
+# under three policies (scripts/treatment_times.jl)
+# ---------------------------------------------------------------------------
+function fig_times()
+    f = joinpath(SR, "CA_treatment_times.csv")
+    isfile(f) || (println("  missing $f, skipping"); return)
+    tt = CSV.read(f, DataFrame)
+    pols = [("Nearest hospital", COL[:nh]), ("Nearest EVT-capable center", COL[:h1]), ("MDP policy", COL[:mdp])]
+    edges = 0:15:480
+    function panel(sel, col, ttl, xlab)
+        p = plot(size = sz(W1, 150), xlabel = xlab, ylabel = "Share of patients", title = ttl, titlefontsize = 8,
+                 legend = :topright, xlims = (0, 480))
+        vline!(p, [270], color = :gray40, linestyle = :dash, linewidth = 0.7, label = "")
+        for (name, c) in pols
+            v = tt[(tt.policy .== name) .& sel, col]; v = filter(!isnan, v)
+            isempty(v) && continue
+            late = round(100 * mean(v .>= 270), digits = 0)
+            stephist!(p, v, bins = edges, normalize = :probability, color = c, linewidth = 1.4,
+                      label = "$name ($(Int(late))% after 270 min)")
+        end
+        return p
+    end
+    isch = (tt.stroke_type .== "LVO") .| (tt.stroke_type .== "NLVO")
+    p1 = panel(isch, :t_needle, "Time to thrombolysis (ischemic stroke)", "Onset-to-needle time (min)")
+    p2 = panel(tt.stroke_type .== "LVO", :t_puncture, "Time to thrombectomy (large-vessel occlusion)", "Onset-to-puncture time (min)")
+    p = plot(p1, p2, layout = (1, 2), size = sz(W2, 160))
+    savefig(p, joinpath(OUT, "fig_treatment_times.pdf")); println("✓ fig_treatment_times.pdf")
+end
+
+# ---------------------------------------------------------------------------
+# Fig. ri: Rhode Island destinations under nearest-hospital routing and the MDP
+# ---------------------------------------------------------------------------
+function fig_ri()
+    f = joinpath(SR, "RI_simulation_results.csv")
+    isfile(f) || (println("  missing $f, skipping"); return)
+    r = CSV.read(f, DataFrame); h = CSV.read("hospitals/RI_hospitals.csv", DataFrame)
+    hname = Dict(String(x.Hospital) => String(x.DisplayName) for x in eachrow(h))
+    hpos  = Dict(String(x.Hospital) => (x.Lon, x.Lat, String(x.Type)) for x in eachrow(h))
+    pal = palette(:tab10)
+    order = first.(sort(collect(countmap(r.optimal_action)), by = last, rev = true))
+    colof = Dict(k => pal[mod1(i, 10)] for (i, k) in enumerate(order))
+    ps = []
+    for (col, ttl) in ((:nearest_hospital_action, "Nearest-hospital routing"), (:optimal_action, "MDP policy"))
+        p = plot(size = sz(W1, 230), title = ttl, titlefontsize = 8, xlims = (-71.9, -71.1), ylims = (41.12, 42.04),
+                 aspect_ratio = 1 / cosd(41.6), xticks = -71.8:0.4:-71.2, yticks = 41.2:0.4:42.0, tickfontsize = 6,
+                 xformatter = v -> degfmt(v, false), yformatter = v -> degfmt(v, true), framestyle = :box,
+                 grid = true, gridalpha = 0.35, gridlinewidth = 0.3, legend = :bottomleft, legendfontsize = 6)
+        outline!(p, "sampled_points/ri_outline.geojson")
+        cm = countmap(r[!, col])
+        for k in order
+            sel = r[!, col] .== k; sum(sel) == 0 && continue
+            short = replace(k, "ROUTE_" => "")
+            scatter!(p, r.start_lon[sel], r.start_lat[sel], color = colof[k], markersize = 1.1, markeralpha = 0.5,
+                     label = "$(get(hname, short, short)) ($(round(100 * cm[k] / nrow(r), digits = 0) |> Int)%)")
+        end
+        for (nm, (x, y, tier)) in hpos
+            scatter!(p, [x], [y], marker = tier == "CSC" ? :utriangle : tier == "PSC" ? :circle : :square,
+                     markersize = tier == "CSC" ? 5 : 3.5, color = :white, markerstrokecolor = :black, markerstrokewidth = 0.7, label = "")
+        end
+        push!(ps, p)
+    end
+    p = plot(ps..., layout = (1, 2), size = sz(W2, 240))
+    savefig(p, joinpath(OUT, "fig_ri_destinations.pdf")); println("✓ fig_ri_destinations.pdf")
+end
+
 FIG in ("all", "onset")  && fig_onset()
+FIG in ("all", "dist")   && fig_dist()
 FIG in ("all", "space")  && fig_space()
 FIG in ("all", "dido")   && fig_dido()
 FIG in ("all", "forest") && fig_forest()
 FIG in ("all", "load")   && fig_load()
 FIG in ("all", "map")    && fig_map()
+FIG in ("all", "maps")   && fig_maps()
+FIG in ("all", "policy") && fig_policy()
+FIG in ("all", "times")  && fig_times()
+FIG in ("all", "ri")     && fig_ri()
 println("done")

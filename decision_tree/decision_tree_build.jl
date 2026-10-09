@@ -28,7 +28,12 @@ mkpath(OUTPUT_DIR)
 
 include("../src/CA_STPMDP_ORS.jl")
 
-N_SAMPLES = 1000
+N_SAMPLES = parse(Int, get(ENV, "N_SAMPLES", "2000"))
+# Patients whose best and second-best destination tiers tie in expected outcome
+# carry no information about where the decision matters; they are not used as
+# training labels (any label is correct for them).
+const INDIFFERENCE_TOL = 1e-6
+global indifferent_samples = 0
 
 # ============================================================================
 # UTILITY FUNCTIONS WITH ERROR HANDLING
@@ -313,7 +318,7 @@ global successful_samples = 0
 global failed_attempts = 0
 
 while successful_samples < N_SAMPLES
-    global successful_samples, failed_attempts, N_SAMPLES
+    global successful_samples, failed_attempts, N_SAMPLES, indifferent_samples
 
     # Sample a routable patient state with valid hospital routes
     sampled_s, t_nearest_CSC, t_nearest_PSC, t_nearest_nsc = sample_routable_patient_state(mdp)
@@ -346,6 +351,14 @@ while successful_samples < N_SAMPLES
     push!(nsc_reachable, t_nearest_nsc !== nothing)
 
     try
+        # Skip patients for whom the destination tier makes no difference
+        tv = sort(collect(values(tier_values(mdp, sampled_s))), rev = true)
+        if length(tv) >= 2 && tv[1] - tv[2] < INDIFFERENCE_TOL
+            global indifferent_samples += 1
+            pop!(time_to_CSCs); pop!(time_to_PSCs); pop!(time_to_nscs); pop!(t_onsets)
+            pop!(csc_reachable); pop!(psc_reachable); pop!(nsc_reachable)
+            continue
+        end
         # Get the optimal action label for this patient
         a = best_action(mdp, sampled_s, 2)
         type = hospital_type(a)
@@ -383,6 +396,7 @@ while successful_samples < N_SAMPLES
 end
 
 global N_SAMPLES = successful_samples
+println("Indifferent patients skipped (tiers tie in expected outcome): $(indifferent_samples)")
 
 if N_SAMPLES == 0
     error("No successful samples generated. Check your data files and routing service.")

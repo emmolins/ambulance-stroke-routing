@@ -101,7 +101,7 @@ function realized_reward(mdp, row_idx, lat, lon, t_onset, realized_type,
     sp_t_onset = t_onset + travel_time
     sp = PatientState(dest_loc, sp_t_onset, KNOWN, realized_type)
 
-    return reward(mdp, s, a, sp)
+    return action_value(mdp, s, a, sp)
 end
 
 function process_file(in_path::String, out_path::String, mdp::StrokeMDP)

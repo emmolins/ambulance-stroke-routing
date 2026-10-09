@@ -71,6 +71,10 @@ if [[ $REGION == ca ]]; then
     step 27 catch80_reps      replicates src/CA_simulations.jl FIELD_CATCHMENT_KM=80 OUTPUT_TAG=_catch80
     step 28 catch80_pool      $J -e 'using CSV, DataFrames; fs = sort(filter(f -> occursin(r"^CA_simulation_results_rep\d+_catch80\.csv$", f), readdir("simulation_results"))); dfs = [begin d = CSV.read(joinpath("simulation_results", f), DataFrame); d.replicate .= parse(Int, match(r"_rep(\d+)_", f).captures[1]); d end for f in fs]; CSV.write("simulation_results/CA_simulation_results_catch80.csv", vcat(dfs...)); println(length(fs), " files pooled")'
     step 29 catch80_stats     env INPUT_PREFIX=CA_simulation_results_catch80 $J src/CA_simulations_stats.jl
+    # Sensitivity cohort: fast transfers (DIDO 60 min) with the policy RE-PLANNED, not re-scored
+    step 30 dido60plan_reps   replicates src/CA_simulations.jl DIDO_MIN=60 OUTPUT_TAG=_dido60plan
+    step 31 dido60plan_pool   $J -e 'using CSV, DataFrames; fs = sort(filter(f -> occursin(r"^CA_simulation_results_rep\d+_dido60plan\.csv$", f), readdir("simulation_results"))); dfs = [begin d = CSV.read(joinpath("simulation_results", f), DataFrame); d.replicate .= parse(Int, match(r"_rep(\d+)_", f).captures[1]); d end for f in fs]; CSV.write("simulation_results/CA_simulation_results_dido60plan.csv", vcat(dfs...)); println(length(fs), " files pooled")'
+    step 32 dido60plan_stats  env INPUT_PREFIX=CA_simulation_results_dido60plan $J src/CA_simulations_stats.jl
 elif [[ $REGION == ri ]]; then
     export ORS_PORT="${ORS_PORT:-8081}"
     step 1  replicates        replicates src/RI_simulations.jl

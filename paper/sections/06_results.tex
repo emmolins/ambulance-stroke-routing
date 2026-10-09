@@ -1,122 +1,141 @@
 % ---- VI. Results. Source: JAMA Results (narrative kept, every number replaced by the
 % 10-replicate reruns of October 2026). \pending{} marks the few values still to be copied
-% from the sensitivity, equity and sweep summary files.
+% from the grid rerun (geographic and equity subsection).
 \section{Results}
 \label{sec:results}
 
 \subsection{Primary comparison: San Francisco Bay Area}
-Across 10 replicates of 1,000 patients, the MDP policy raised the mean probability of an excellent outcome from 0.357 under nearest-hospital routing to 0.379 (paired difference 0.023, 95\% CI 0.022--0.024, $p < 10^{-6}$ after Bonferroni correction, $d_z = 0.73$; Table~\ref{tab:main}) and the median from 0.343 to 0.406 (Fig.~\ref{fig:hist}). The realized rewards give the same picture: mean 0.357 against 0.379, difference 0.022 (95\% CI 0.021--0.023). A spike in the nearest-hospital distribution at 0.327, which holds 32\% of patients, reflects those who reach every treatment outside the window in which earlier arrival adds benefit; routing cannot help them, and under the MDP the share at that value falls to 23\%. The largest single-patient gain was a 30\% relative increase.
+Across 10 replicates of 1,000 patients, the MDP policy raised the mean probability of an excellent outcome from 0.374 under nearest-hospital routing to 0.403 (paired difference 0.029, 95\% CI 0.028--0.030, $p < 10^{-6}$ after Bonferroni correction, $d_z = 0.92$; Table~\ref{tab:main}) and the median from 0.359 to 0.419. The realized rewards give the same picture: mean 0.374 against 0.403, difference 0.029 (95\% CI 0.027--0.030). Fig.~\ref{fig:dist} shows where the gain comes from: nearest-hospital routing leaves a large share of patients at the untreated outcome floor, and the MDP moves most of them into the treated range. The gain is concentrated in the middle of the onset window: it is small for the earliest presenters, for whom any destination reaches treatment in time, peaks for pickups between about one and two and a half hours after onset, and vanishes beyond about three hours, when thrombectomy falls outside the outcome window whatever the destination. A spike in the nearest-hospital distribution at 0.327 (17\% of patients) marks those who reach every treatment outside the window in which earlier arrival adds benefit; under the MDP the share at that value falls to 9\%. The largest single-patient gain was a 30\% relative increase.
 
-Against the heuristics, nearest-hospital routing underperformed every alternative. The MDP policy outperformed the nearest-stroke-center rule by 0.019 (95\% CI 0.018--0.020) and the nearest-EVT-center rule by 0.0006 (95\% CI 0.0006--0.0006): the two policies agree for 71\% of patients, and where they differ the MDP is never worse (1,009 patients better, none worse). The small margin over the nearest-EVT-center rule hides an operational difference. Of the 2,875 patients on whom the two policies diverged, 1,866 had identical predicted outcomes, yet the nearest-EVT-center rule drove them a mean 16.2 minutes farther (26.0 against 9.8 minutes first-leg travel, up to 64 minutes more), and overall it concentrated transports on 10 hospitals against 51 under the MDP (the two busiest EVT centers received 52\% of its patients, against 35\% under the MDP). These detours fall on patients for whom earlier arrival does not change the outcome, such as hemorrhages and late-presenting ischemic strokes, where the reward function has flattened. Because the reward does not penalize travel that leaves the outcome unchanged, it understates the operational cost of a fixed bypass rule; the travel-time tie-break in the planner is what lets the MDP avoid it.
+Against the heuristics, nearest-hospital routing underperformed every alternative. The MDP policy outperformed the nearest-stroke-center rule by 0.025 (95\% CI 0.024--0.025) and the nearest-EVT-center rule by 0.0003 (95\% CI 0.0003--0.0003): the two policies agree for 88\% of patients, and where they differ the MDP is never worse (509 patients better, none worse). The small margin over the nearest-EVT-center rule hides an operational difference. Of the 1,223 patients on whom the two policies diverged, 714 had identical predicted outcomes, yet the nearest-EVT-center rule drove them a mean 17 minutes farther (27 against 10 minutes first-leg travel, up to 64 minutes more), and overall it concentrated transports on 10 hospitals against 51 under the MDP (the two busiest EVT centers received 52\% of its patients, against 45\% under the MDP). These detours fall on patients for whom earlier arrival does not change the outcome, such as hemorrhages and late-presenting ischemic strokes, where the reward function has flattened. Because the reward does not penalize travel that leaves the outcome unchanged, it understates the operational cost of a fixed bypass rule; the travel-time tie-break in the planner is what lets the MDP avoid it.
 
 \begin{table}[t]
 \centering
-\caption{Bay Area, 10 replicates $\times$ 1,000 patients. Probability of an excellent outcome (mRS 0--1 at 90 days), planning reward. Paired differences are means with 95\% CI across replicates; all $p < 10^{-6}$ after Bonferroni correction. $^\dagger$On the 200 held-out sweep patients, where the MDP scores 0.384.}
+\caption{Bay Area, 10 replicates $\times$ 1,000 patients. Probability of an excellent outcome (mRS 0--1 at 90 days), planning reward. Paired differences are means with 95\% CI across replicates; all $p < 10^{-6}$ after Bonferroni correction. $^\dagger$On the 200 held-out sweep patients, where the MDP scores 0.4014.}
 \label{tab:main}
 \resizebox{\columnwidth}{!}{\begin{tabular}{@{}lcccc@{}}
 \toprule
 Policy & Mean & Median & Travel (min) & Hospitals \\
 \midrule
-MDP (depth 2) & 0.379 & 0.406 & 16.7 & 51 \\
-Nearest hospital & 0.357 & 0.343 & 9.4 & 51 \\
-Nearest EVT-capable center & 0.379 & 0.406 & 21.4 & 10 \\
-Nearest stroke center & 0.360 & 0.348 & 10.2 & 45 \\
-Decision tree (depth 1) & 0.384$^\dagger$ & -- & -- & -- \\
+MDP (depth 2) & 0.403 & 0.419 & 19.3 & 51 \\
+Nearest hospital & 0.374 & 0.359 & 9.4 & 51 \\
+Nearest EVT-capable center & 0.403 & 0.419 & 21.4 & 10 \\
+Nearest stroke center & 0.378 & 0.361 & 10.2 & 45 \\
+Decision tree (depth 1) & 0.4013$^\dagger$ & -- & -- & -- \\
 \midrule
 \multicolumn{5}{@{}l}{Paired difference, mean (95\% CI), $d_z$} \\
-MDP $-$ Nearest hospital & \multicolumn{4}{l}{0.0228 (0.0219--0.0238), 0.73} \\
-MDP $-$ Nearest EVT-capable & \multicolumn{4}{l}{0.0006 (0.0006--0.0006), 0.27} \\
-MDP $-$ Nearest stroke center & \multicolumn{4}{l}{0.0191 (0.0183--0.0198), 0.68} \\
-Nearest EVT-capable $-$ Nearest hospital & \multicolumn{4}{l}{0.0222 (0.0213--0.0232), 0.70} \\
-Nearest stroke center $-$ Nearest hospital & \multicolumn{4}{l}{0.0038 (0.0034--0.0041), 0.28} \\
+MDP $-$ Nearest hospital & \multicolumn{4}{l}{0.0292 (0.0284--0.0300), 0.92} \\
+MDP $-$ Nearest EVT-capable & \multicolumn{4}{l}{0.0003 (0.0003--0.0003), 0.19} \\
+MDP $-$ Nearest stroke center & \multicolumn{4}{l}{0.0248 (0.0242--0.0255), 0.85} \\
+Nearest EVT-capable $-$ Nearest hospital & \multicolumn{4}{l}{0.0289 (0.0281--0.0297), 0.90} \\
+Nearest stroke center $-$ Nearest hospital & \multicolumn{4}{l}{0.0044 (0.0041--0.0047), 0.29} \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{ca_histogram}
-\caption{Distribution of the probability of an excellent outcome for simulated Bay Area patients under nearest-hospital and MDP routing (one replicate shown). Vertical lines mark means and medians.}
-\label{fig:hist}
+\includegraphics[width=\columnwidth]{fig_outcome_dist}
+\caption{Distribution of the per-patient probability of an excellent outcome under nearest-hospital routing and the MDP policy, Bay Area, all replicates (planning reward). Dashed lines mark the means. Nearest-hospital routing leaves a large group of patients at the untreated floor; the MDP moves most of them to the treated range.}
+\label{fig:dist}
 \end{figure}
 
+
 \subsection{Geographic and equity analysis}
-To locate where routing matters most, we simulated five patients in each cell of a 200$\times$200 grid over the Bay Area (13,917 populated cells) and mapped the mean outcome under each policy (Fig.~\ref{fig:maps}). Relative to nearest-hospital routing, the MDP improved the cell mean by a median of 4.7\%, by more than 10\% in 3,788 cells (27\%), by more than 25\% in 613 cells, and by a maximum of 73\%; the 90th percentile of the cell-level improvement was 19\%. The largest gains lie in the East Bay corridor from Hayward through Fremont to Livermore, in the North Bay and along the Peninsula coast, which lie farther from EVT-capable centers; San Francisco, Palo Alto and San Jose, with proximate EVT-capable centers, changed little. Cells where the MDP cell mean was below the nearest-hospital mean (13.6\% of cells, none by more than 0.03) are scattered rather than regional \pending{[check with MJK: these are the 7.8\% of patients whose recorded first-destination reward is below nearest-hospital's; the depth-2 value sums first- and second-hop rewards, so the planner can prefer a first destination with lower immediate reward]}, and against the nearest-EVT-center rule the MDP was below the heuristic in a single cell. Stratified by census-tract income quartile and urbanicity (Table~\ref{tab:equity}), the MDP's gain over nearest-hospital routing was 0.020 to 0.021 in every income quartile and 0.020 in urban against 0.019 in rural tracts, so the benefit is not concentrated in or absent from any stratum. Against the nearest-EVT-center heuristic the gain was 0.0017 in the lowest income quartile against 0.0005 in the highest, and 0.0023 in rural against 0.0009 in urban tracts: the advantage of the MDP over the bypass rule, though small, is largest where incomes are lowest and where the nearest EVT-capable center is farthest.
+To locate where routing matters most, we simulated five patients in each cell of a 200$\times$200 grid over the Bay Area (16,138 populated cells, 79,501 patients) and mapped the mean outcome under each policy (Fig.~\ref{fig:maps_outcome}) and the mean paired difference per cell (Fig.~\ref{fig:maps}). Relative to nearest-hospital routing, the MDP improved the cell mean by a median of 7.3\%, by more than 10\% in 6,464 cells (40\%), by more than 25\% in 1,425 cells (9\%), and by a maximum of 74\%; the 90th percentile of the cell-level improvement was 23\%. The largest gains lie in the East Bay corridor from Hayward through Fremont to Livermore, in the North Bay and along the Peninsula coast, areas farther from EVT-capable centers; San Francisco, Palo Alto and San Jose, with proximate EVT-capable centers, changed little. Cells where the MDP cell mean was below the nearest-hospital mean (8.9\% of cells, none by more than 0.03) are scattered rather than regional \pending{[check with MJK: these are the 4.9\% of patients whose recorded first-destination reward is below nearest-hospital's; the depth-2 value sums first- and second-hop rewards, so the planner can prefer a first destination with lower immediate reward]}, and against the nearest-EVT-center rule the MDP was below the heuristic in no cell. Stratified by census-tract income quartile and urbanicity (Table~\ref{tab:equity}), the MDP's gain over nearest-hospital routing was 0.028 to 0.032 across income quartiles, largest in the lowest quartile, and 0.032 in rural against 0.029 in urban tracts, so the benefit is present in every stratum and slightly larger where incomes are lowest and population is sparsest. Against the nearest-EVT-center heuristic the gain was 0.0014 in the lowest income quartile against 0.0003 in the highest, and 0.0015 in rural against 0.0007 in urban tracts: the advantage of the MDP over the bypass rule, though small, is concentrated in the same places.
 
 \begin{table*}[t]
 \centering
-\caption{Paired difference in probability of an excellent outcome by census-tract stratum (mean, 95\% CI over patients), grid cohort joined to 2020 census tracts (65,004 patients in tracts with income data; 52,047 in tracts with a rural-urban commuting area code).}
+\caption{Paired difference in probability of an excellent outcome by census-tract stratum (mean, 95\% CI over patients), grid cohort joined to 2020 census tracts (76,800 patients in tracts with income data; 61,087 in tracts with a rural-urban commuting area code).}
 \label{tab:equity}
 \begin{tabular}{@{}lccc@{}}
 \toprule
 Stratum & MDP $-$ Nearest & MDP $-$ Nearest EVT & MDP $-$ Nearest SC \\
 \midrule
-Income Q1 (lowest), 328 tracts & 0.0196 (0.0188--0.0203) & 0.0017 (0.0016--0.0018) & 0.0176 (0.0169--0.0183) \\
-Income Q2, 328 tracts & 0.0211 (0.0202--0.0219) & 0.0010 (0.0009--0.0011) & 0.0175 (0.0167--0.0183) \\
-Income Q3, 328 tracts & 0.0213 (0.0205--0.0222) & 0.0013 (0.0012--0.0014) & 0.0188 (0.0180--0.0196) \\
-Income Q4 (highest), 328 tracts & 0.0209 (0.0202--0.0216) & 0.0005 (0.0005--0.0005) & 0.0189 (0.0183--0.0196) \\
-Urban, 1,054 tracts & 0.0202 (0.0198--0.0207) & 0.0009 (0.0009--0.0009) & 0.0182 (0.0177--0.0186) \\
-Rural, 23 tracts & 0.0187 (0.0176--0.0198) & 0.0023 (0.0021--0.0024) & 0.0164 (0.0154--0.0174) \\
+Income Q1 (lowest), 328 tracts & 0.0322 (0.0313--0.0330) & 0.0014 (0.0013--0.0015) & 0.0294 (0.0286--0.0302) \\
+Income Q2, 328 tracts & 0.0280 (0.0271--0.0288) & 0.0005 (0.0005--0.0006) & 0.0241 (0.0233--0.0249) \\
+Income Q3, 328 tracts & 0.0318 (0.0309--0.0328) & 0.0008 (0.0007--0.0008) & 0.0287 (0.0278--0.0295) \\
+Income Q4 (highest), 328 tracts & 0.0304 (0.0297--0.0311) & 0.0003 (0.0003--0.0004) & 0.0281 (0.0274--0.0288) \\
+Urban, 1,054 tracts & 0.0287 (0.0282--0.0292) & 0.0007 (0.0006--0.0007) & 0.0264 (0.0259--0.0268) \\
+Rural, 23 tracts & 0.0318 (0.0305--0.0331) & 0.0015 (0.0014--0.0016) & 0.0280 (0.0268--0.0293) \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=0.245\textwidth,trim=0 0 0 34,clip]{ca_outcome_nearest}\hfill
-\includegraphics[width=0.245\textwidth,trim=0 0 0 34,clip]{ca_outcome_optimal}\hfill
-\includegraphics[width=0.245\textwidth,trim=0 0 0 34,clip]{ca_diff_opt_minus_nearest}\hfill
-\includegraphics[width=0.245\textwidth,trim=0 0 0 34,clip]{ca_diff_opt_minus_heur1}
-\caption{Mean probability of an excellent outcome per grid cell (five patients per cell) under nearest-hospital routing (left) and the MDP policy (center left); difference between the MDP and nearest-hospital routing (center right) and between the MDP and the nearest-EVT-center rule (right), red where the MDP is better. Cells without population are blank.}
+\includegraphics[width=0.96\textwidth]{fig_maps_outcome}
+\caption{Probability of an excellent outcome by pickup location under nearest-hospital routing (left) and the MDP policy (right), Bay Area. Each cell of the 0.007$^\circ$ grid holds the mean realized reward of five simulated patients, smoothed over a 5$\times$5-cell neighborhood (about 3~km); cells without population or road access are blank. Both panels share the color scale.}
+\label{fig:maps_outcome}
+\end{figure*}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.96\textwidth]{fig_maps_diff}
+\caption{Paired difference in probability of an excellent outcome by pickup location: MDP minus nearest-hospital routing (left) and MDP minus the nearest-EVT-center rule (right), same grid and smoothing as Fig.~\ref{fig:maps_outcome}. Red where the MDP is better; the two panels use different scales.}
 \label{fig:maps}
 \end{figure*}
 
+\IfFileExists{figures/fig_policy_map.pdf}{%
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.96\textwidth]{fig_policy_map}
+\caption{The MDP policy as a map: the tier of the first destination chosen from the centre of every grid cell, with the subtype unknown, for pickup 60, 150 and 240 minutes after onset. Triangles are EVT-capable centers, circles thrombolysis-capable centers. Early in the window nearly every cell routes to an EVT-capable center; as the window closes the thrombolysis-capable centers' catchments grow until they cover the region.}
+\label{fig:policy}
+\end{figure*}}{}
+
+\IfFileExists{figures/fig_treatment_times.pdf}{%
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.96\textwidth]{fig_treatment_times}
+\caption{Distribution of onset-to-needle time for ischemic patients (left) and onset-to-puncture time for LVO patients (right) under three policies, Bay Area, all replicates, with the best in-hospital follow-up for the drawn subtype. The dashed line is the 270-minute end of the outcome window; legend entries give the share of patients treated after it.}
+\label{fig:times}
+\end{figure*}}{}
+
 \subsection{Sensitivity analyses}
-Table~\ref{tab:sens} reports the MDP-minus-nearest difference under perturbed travel times and alternative in-hospital intervals. The difference is unchanged to three decimals under $\sigma = 0.10$ and $0.20$ travel-time noise (0.022 in both cases) and moves from 0.023 to 0.021 as travel times are scaled from $\times 0.7$ to $\times 1.3$, because a perturbation applied to every first leg moves both policies' arrival times in the same direction; the margin over the nearest-EVT-center rule stays between 0.0004 and 0.0007 throughout. It depends strongly on door-in-door-out time: with $T_{\text{DIDO}}$ at 60 minutes the gain over nearest-hospital routing is 0.008, at 90 minutes 0.015, at the registry median of 121 minutes 0.022 and at the upper quartile of 175 minutes 0.028. A longer door-in-door-out interval penalizes drip-and-ship and favors direct transport to an EVT-capable center, which is what the MDP chooses for most patients; the result is consistent with the registry association between DIDO and outcome~\cite{royan2026} and explains why a single 60-minute in-hospital interval, as assumed in earlier work, understates the policy's value. Treating the four uncertified thrombectomy sites as EVT-capable (15 centers) and re-planning leaves the gain at 0.022 (95\% CI 0.021--0.023 over 3 replicates) and the margin over the nearest-EVT-center rule at 0.0004.
+Table~\ref{tab:sens} reports the MDP-minus-nearest difference under perturbed travel times and alternative in-hospital intervals. The difference is unchanged to two decimals under $\sigma = 0.10$ and $0.20$ travel-time noise (0.029 and 0.028) and moves from 0.029 to 0.028 as travel times are scaled from $\times 0.7$ to $\times 1.3$, because a perturbation applied to every first leg moves both policies' arrival times in the same direction; the margin over the nearest-EVT-center rule stays between 0.0002 and 0.0004 throughout. It depends strongly on door-in-door-out time: with $T_{\text{DIDO}}$ at 60 minutes the gain over nearest-hospital routing is 0.009, at 90 minutes 0.018, at the registry median of 121 minutes 0.029 and at the upper quartile of 175 minutes 0.043. A longer door-in-door-out interval penalizes drip-and-ship and favors direct transport to an EVT-capable center, which is what the MDP chooses for most patients; the result is consistent with the registry association between DIDO and outcome~\cite{royan2026} and explains why a single 60-minute in-hospital interval, as assumed in earlier work, understates the policy's value. Treating the four uncertified thrombectomy sites as EVT-capable (15 centers) and re-planning leaves the gain at 0.028 (95\% CI 0.025--0.030 over 3 replicates) and the margin over the nearest-EVT-center rule at 0.0002.
 
 \begin{table}[t]
 \centering
-\caption{Sensitivity of the MDP $-$ nearest-hospital difference in probability of an excellent outcome (realized reward, mean across replicates).}
+\caption{Sensitivity of the MDP $-$ nearest-hospital difference in probability of an excellent outcome (mean and 95\% CI across replicates; realized reward for the post hoc rows, planning reward for the re-planned row).}
 \label{tab:sens}
 \resizebox{\columnwidth}{!}{\begin{tabular}{@{}llc@{}}
 \toprule
 Analysis & Setting & Difference \\
 \midrule
-Base case & $T_{\text{DIDO}} = 121$ min, certified EVT & 0.022 (0.021--0.023) \\
-Travel-time noise & $\sigma = 0.10$ / $0.20$ & 0.022 / 0.022 \\
-Travel-time bias & $\times 0.70$ / $0.80$ / $0.90$ / $1.10$ / $1.20$ / $1.30$ & 0.023 / 0.023 / 0.022 / 0.021 / 0.021 / 0.021 \\
-Door-in-door-out & 60 / 90 / 175 min & 0.008 / 0.015 / 0.028 \\
-EVT definition & on-site (15 centers), re-planned, 3 replicates & 0.022 (0.021--0.023) \\
-Onset-time distribution & uniform on 30--270 min, re-planned & \pending{} \\
-First-leg catchment & 80 km radius, re-planned & \pending{} \\
+Base case & $T_{\text{DIDO}} = 121$ min, certified EVT, log-normal onset & 0.029 (0.027--0.030) \\
+Travel-time noise & $\sigma = 0.10$ / $0.20$ & 0.029 / 0.028 \\
+Travel-time bias & $\times 0.70$ / $0.80$ / $0.90$ / $1.10$ / $1.20$ / $1.30$ & 0.029 / 0.029 / 0.029 / 0.028 / 0.028 / 0.028 \\
+Door-in-door-out & 60 / 90 / 175 min & 0.009 / 0.018 / 0.043 \\
+EVT definition & on-site (15 centers), re-planned, 3 replicates & 0.028 (0.025--0.030) \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
+
 \subsection{Decision-tree policy}
-The depth sweep (Table~\ref{tab:tree}) shows that a single split recovers 99.4\% of the MDP's gain over nearest-hospital routing on 200 held-out patients, and that trees beyond depth 4 add leaves without gain. The depth-1 rule is: if time since onset is at most 188 minutes, go to the nearest EVT-capable center; otherwise go to the nearest thrombolysis-capable center. Beyond about 180 minutes, 90 minutes of door-to-puncture places EVT after the 270-minute end of the outcome window whatever the travel time, so only earlier thrombolysis can still change the outcome; the learned threshold of 188 minutes is that boundary. Depth 2 adds one qualification for late presenters: go to the EVT-capable center anyway if it is no farther than the thrombolysis-capable one (Fig.~\ref{fig:tree}); depth 3 adds the non-stroke-center branch for patients for whom it is the closest option by a margin. The shallowest tree within 1\% of the MDP is the depth-1 rule, and the depth-2 tree is the one we would print on a card. On the training cohort the MDP sent 74\% of patients to an EVT-capable center, 23\% to a thrombolysis-capable center and 4\% to a non-stroke-center hospital, and in 55\% of cases the destination was not the closest hospital. The nearest-EVT-center rule itself recovers 97.7\% of the gain on the same held-out patients, which is why the tree's first split reproduces it and its second split corrects it for late presenters.
+The depth sweep (Table~\ref{tab:tree}) shows that a single split recovers 99.8\% of the MDP's gain over nearest-hospital routing on 200 held-out patients, that depth 2 is indistinguishable from the MDP on that set, and that deeper trees add leaves without gain. The depth-1 rule is: if time since onset is at most 165 minutes, go to the nearest EVT-capable center; otherwise go to the nearest thrombolysis-capable center. The threshold is where 90 minutes of door-to-puncture plus a typical first leg places EVT after the 270-minute end of the outcome window, so that only earlier thrombolysis can still change the outcome. Depth 2 adds one qualification for late presenters: go to the EVT-capable center anyway if it is no farther than the thrombolysis-capable one (Fig.~\ref{fig:tree}). The shallowest tree within 1\% of the MDP is the depth-1 rule, and the depth-2 tree is the one we would print on a card. On the training cohort the MDP sent 87\% of patients to an EVT-capable center, 12\% to a thrombolysis-capable center and 1\% to a non-stroke-center hospital, and in 68\% of cases the destination was not the closest hospital. The nearest-EVT-center rule itself recovers 99.0\% of the gain on the same held-out patients, which is why the tree's first split reproduces it and its second split corrects it for late presenters.
 
 \begin{table}[t]
 \centering
-\caption{Decision-tree depth sweep on 200 held-out patients (MDP mean 0.3837, nearest-hospital 0.3572), and planner latency per decision (50 patients, cold travel-time cache).}
+\caption{Decision-tree depth sweep on 200 held-out patients (MDP mean 0.4014, nearest-hospital 0.3748), and planner latency per decision (50 patients, cold travel-time cache).}
 \label{tab:tree}
 \resizebox{\columnwidth}{!}{\begin{tabular}{@{}lcccc@{}}
 \toprule
 Tree depth & Leaves & Mean outcome & Loss vs MDP & Gain recovered \\
 \midrule
-1 & 2 & 0.3836 & 0.00015 & 99.4\% \\
-2 & 4 & 0.3836 & 0.00012 & 99.6\% \\
-3 & 7 & 0.3837 & 0.00007 & 99.7\% \\
-4 & 12 & 0.3837 & 0.00002 & 99.9\% \\
-5 to 10 & 17 to 22 & 0.3837 & 0.00003 & 99.9\% \\
-Unconstrained & 22 & 0.3837 & 0.00005 & 99.8\% \\
-Nearest EVT-capable center & -- & 0.3831 & 0.00061 & 97.7\% \\
+1 & 2 & 0.4013 & 0.00006 & 99.8\% \\
+2 & 3 & 0.4014 & $-$0.00002 & 100.0\% \\
+3 & 5 & 0.4011 & 0.00025 & 99.1\% \\
+4 to 10 & 7 to 12 & 0.4013 & 0.00006 & 99.8\% \\
+Unconstrained & 12 & 0.4013 & 0.00006 & 99.8\% \\
+Nearest EVT-capable center & -- & 0.4011 & 0.00026 & 99.0\% \\
 \midrule
 Planning depth & Median (ms) & p95 (ms) & p99 (ms) & Max (ms) \\
-1 & 8.4 & 11.7 & 13.5 & 14.0 \\
-2 & 15.9 & 23.5 & 28.6 & 32.4 \\
-3 & 25.0 & 30.2 & 36.2 & 37.2 \\
-4 & 49.2 & 53.8 & 54.9 & 55.1 \\
+1 & 8.7 & 12.3 & 20.5 & 26.2 \\
+2 & 17.7 & 22.7 & 25.9 & 27.4 \\
+3 & 24.5 & 30.9 & 37.3 & 38.5 \\
+4 & 51.3 & 53.3 & 53.8 & 54.1 \\
 \bottomrule
 \end{tabular}}
 \end{table}
@@ -131,7 +150,7 @@ Planning depth & Median (ms) & p95 (ms) & p99 (ms) & Max (ms) \\
   box/.style={draw, rounded corners, inner sep=3pt},
   leaf/.style={draw, fill=gray!12, inner sep=3pt},
   edge from parent/.style={draw, -latex}]
-\node[box]{Time since onset $\leq$ 188 min?}
+\node[box]{Time since onset $\leq$ 165 min?}
   child {node[leaf]{EVT-capable\\center} edge from parent node[left,xshift=-2pt]{yes}}
   child {node[box]{EVT-capable center no farther\\than thrombolysis-capable?}
     child {node[leaf]{EVT-capable\\center} edge from parent node[left,xshift=-2pt]{yes}}
@@ -143,10 +162,18 @@ Planning depth & Median (ms) & p95 (ms) & p99 (ms) & Max (ms) \\
 \end{figure}
 
 \subsection{Real-time feasibility}
-A depth-2 decision, including the routing-engine call for the patient's travel-time row, took a median of 16~ms (95th percentile 24~ms, maximum 32~ms); depth 3 and 4 took 25 and 49~ms. Every value is three orders of magnitude inside the dispatch window, so the chosen depth is set by the model (one transfer) rather than by compute, and the decision tree needs no computation at all.
+A depth-2 decision, including the routing-engine call for the patient's travel-time row, took a median of 18~ms (95th percentile 23~ms, maximum 27~ms); depth 3 and 4 took 25 and 51~ms. Every value is three orders of magnitude inside the dispatch window, so the chosen depth is set by the model (one transfer) rather than by compute, and the decision tree needs no computation at all.
 
 \subsection{Rhode Island}
-In Rhode Island the MDP and the state's nearest-EVT-center protocol gave nearly identical mean outcomes (0.379 against 0.378; difference 0.0007, 95\% CI 0.0006--0.0007), and both outperformed nearest-hospital routing by 0.020 (95\% CI 0.019--0.021) and 0.019 (Table~\ref{tab:ri}); the nearest-stroke-center rule coincides with nearest-hospital routing because every Rhode Island hospital is at least a thrombolysis-capable center. The protocol sends every patient to Rhode Island Hospital; the MDP sent 71\% there and the rest to eight other hospitals, with a mean first-leg travel of 18 minutes against 24, and where the two diverged (2,921 patients) the outcome was identical for 1,879 and better under the MDP for the remainder. In a small state with one EVT center the optimal policy largely coincides with the centralized protocol, and the value of the MDP lies in sparing the detour, and the single center's load, for patients who do not benefit from it.
+\IfFileExists{figures/fig_ri_destinations.pdf}{%
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.9\textwidth]{fig_ri_destinations}
+\caption{Rhode Island: pickup locations colored by destination hospital under nearest-hospital routing (left) and the MDP policy (right), all replicates; legend entries give each hospital's share of patients. Triangle, EVT-capable center; circles, thrombolysis-capable centers; squares, other hospitals.}
+\label{fig:ri}
+\end{figure*}}{}
+
+In Rhode Island the MDP and the state's nearest-EVT-center protocol gave nearly identical mean outcomes (0.402 against 0.402; difference 0.0003, 95\% CI 0.0003--0.0004), and both outperformed nearest-hospital routing by 0.026 (95\% CI 0.025--0.026) and 0.025 (Table~\ref{tab:ri}); the nearest-stroke-center rule coincides with nearest-hospital routing because every Rhode Island hospital is at least a thrombolysis-capable center. The protocol sends every patient to Rhode Island Hospital; the MDP sent 88\% there and the rest to eight other hospitals, with a mean first-leg travel of 21 minutes against 24, and where the two diverged (1,245 patients) the outcome was identical for 716 and better under the MDP for the remainder, at 18 minutes less travel on average. In a small state with one EVT center the optimal policy largely coincides with the centralized protocol, and the value of the MDP lies in sparing the detour, and the single center's load, for patients who do not benefit from it.
 
 \begin{table}[t]
 \centering
@@ -156,13 +183,13 @@ In Rhode Island the MDP and the state's nearest-EVT-center protocol gave nearly 
 \toprule
 Policy & Mean & Median & Travel (min) & Hospitals \\
 \midrule
-MDP (depth 2) & 0.379 & 0.405 & 18.4 & 9 \\
-Nearest hospital & 0.359 & 0.347 & 11.6 & 9 \\
-Nearest EVT-capable center & 0.378 & 0.405 & 23.5 & 1 \\
-Nearest stroke center & 0.359 & 0.347 & 11.6 & 9 \\
+MDP (depth 2) & 0.402 & 0.419 & 21.2 & 9 \\
+Nearest hospital & 0.376 & 0.360 & 11.6 & 9 \\
+Nearest EVT-capable center & 0.402 & 0.419 & 23.5 & 1 \\
+Nearest stroke center & 0.376 & 0.360 & 11.6 & 9 \\
 \midrule
-MDP $-$ Nearest hospital & \multicolumn{4}{l}{0.0201 (0.0193--0.0209), $d_z$ = 0.71} \\
-MDP $-$ Nearest EVT-capable & \multicolumn{4}{l}{0.0007 (0.0006--0.0007), $d_z$ = 0.28} \\
+MDP $-$ Nearest hospital & \multicolumn{4}{l}{0.0257 (0.0252--0.0263), $d_z$ = 0.88} \\
+MDP $-$ Nearest EVT-capable & \multicolumn{4}{l}{0.0003 (0.0003--0.0004), $d_z$ = 0.19} \\
 \bottomrule
 \end{tabular}}
 \end{table}

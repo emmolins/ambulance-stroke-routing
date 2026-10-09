@@ -14,7 +14,7 @@
 % Build:    latexmk -pdf main.tex    (or: pdflatex; bibtex main; pdflatex x2)
 % Anonymous submission: compile with \anontrue below.
 % =============================================================================
-\documentclass[journal]{IEEEtran}
+\documentclass[lettersize,journal]{IEEEtran}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{amsmath,amssymb,amsfonts}
@@ -55,14 +55,18 @@
 \thanks{M. J. Kochenderfer is with the Department of Aeronautics and Astronautics, Stanford University, Stanford, CA, USA.}}
 \fi
 
+\ifanon
+\markboth{IEEE Transactions on Automation Science and Engineering}{Real-Time Routing of Suspected Stroke Patients}
+\else
 \markboth{IEEE Transactions on Automation Science and Engineering}{Molins \MakeLowercase{\textit{et al.}}: Real-Time Routing of Suspected Stroke Patients}
+\fi
 
 \maketitle
 
 \input{sections/00_abstract}
 
 \begin{IEEEkeywords}
-Markov decision processes, emergency medical services, stroke, healthcare automation, interpretable policies, decision trees, routing.
+Markov decision processes, emergency medical services, stroke, healthcare automation, decision trees.
 \end{IEEEkeywords}
 
 \input{sections/01_introduction}

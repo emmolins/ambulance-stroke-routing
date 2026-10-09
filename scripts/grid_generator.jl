@@ -93,7 +93,7 @@ function evaluate_policy_realized(mdp, planner_state, realized_type, policy_fn)
         s_known = PatientState(planner_state.loc, planner_state.t_onset,
                                KNOWN, realized_type)
         next_state = rand(transition(mdp, s_known, action))
-        r = reward(mdp, s_known, action, next_state)
+        r = action_value(mdp, s_known, action, next_state)
         # Same value as calculate_travel_time, but served from the cached matrix row
         # (avoids 4 per-pair Directions calls per patient).
         tt = cached_travel_time(mdp, planner_state.loc, next_state.loc)

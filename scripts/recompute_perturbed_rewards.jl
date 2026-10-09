@@ -19,7 +19,7 @@
 #     1. Read the recorded patient-pickup travel time t.
 #     2. Apply systematic bias:  t' = t × TRAVEL_TIME_BIAS_MULT
 #     3. Apply log-normal noise: t'' = t' × exp(σ·Z − σ²/2),  Z ~ N(0, 1)
-#     4. Recompute the reward via reward(mdp, s, a, sp) using:
+#     4. Recompute the reward via action_value(mdp, s, a, sp) using:
 #          - the patient's TRUE stroke type (KNOWN branch — realized outcome)
 #          - the perturbed travel time t''
 #     5. Write the perturbed-reward CSV with an auto-generated tag.
@@ -135,7 +135,7 @@ function perturbed_reward(mdp, row_idx, lat, lon, t_onset, realized_type,
     sp_t_onset = t_onset + t_perturbed
     sp = PatientState(dest_loc, sp_t_onset, KNOWN, realized_type)
 
-    return reward(mdp, s, a, sp)
+    return action_value(mdp, s, a, sp)
 end
 
 """

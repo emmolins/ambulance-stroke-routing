@@ -1,12 +1,12 @@
 Metric,Value
-Total Samples,1000.0
+Total Samples,5000.0
 Failed Attempts,0.0
-Route to CSC,870.0
-Route to PSC,117.0
-Route to NSC,13.0
-Avg Time to CSC,21.36
-Avg Time to PSC,11.61
-Avg Time to NSC,23.66
-Avg Onset Time,108.51
-Decision Matches Fastest,320.0
-Decision Different from Fastest,680.0
+Route to CSC,4349.0
+Route to PSC,651.0
+Route to NSC,0.0
+Avg Time to CSC,21.14
+Avg Time to PSC,11.45
+Avg Time to NSC,22.96
+Avg Onset Time,95.35
+Decision Matches Fastest,1515.0
+Decision Different from Fastest,3485.0

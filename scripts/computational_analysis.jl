@@ -51,7 +51,7 @@ include("../src/CA_STPMDP_ORS.jl")
 
 # ----- Configuration --------------------------------------------------------
 const N_SAMPLES_PER_DEPTH = haskey(ENV, "N_SAMPLES") ? parse(Int, ENV["N_SAMPLES"]) : 50
-const DEPTHS              = [1, 2, 3, 4]
+const DEPTHS              = [2]   # episode has two decisions; deeper search is identical
 const N_WARMUP            = 5                  # discarded calls to warm caches
 const POINTS_CSV          = "sampled_points/CA_points.csv"
 const OUT_CSV             = "simulation_results/CA_computational_analysis.csv"

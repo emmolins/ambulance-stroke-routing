@@ -166,7 +166,7 @@ function evaluate_policy(mdp, state, policy_fn)
     action_str = enum_to_string(action)
     try
         next_state = rand(transition(mdp, state, action))
-        r = reward(mdp, state, action, next_state)
+        r = action_value(mdp, state, action, next_state)
         tt = calculate_travel_time(state.loc, next_state.loc)
         tt === nothing && return (nothing, "ORS could not route")
         return ((action_str, r, tt), nothing)

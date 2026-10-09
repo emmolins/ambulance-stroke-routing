@@ -162,12 +162,12 @@ while valid_samples < N_TEST && attempts < max_attempts
     
 
     dt_next = rand(transition(mdp, s, enum_dt_action))
-    dt_reward = reward(mdp, s, enum_dt_action, dt_next)
+    dt_reward = action_value(mdp, s, enum_dt_action, dt_next)
 
     optimal_action = best_action(mdp, s, 2)
     optimal_action_str = enum_to_string(optimal_action)
     optimal_next = rand(transition(mdp, s, optimal_action))
-    optimal_reward = reward(mdp, s, optimal_action, optimal_next)
+    optimal_reward = action_value(mdp, s, optimal_action, optimal_next)
 
     push!(test_results, (
         valid_samples + 1,

@@ -473,256 +473,219 @@ end
 ###### =========================================================================
 ######  REWARD FUNCTION
 ###### =========================================================================
+#
+# Sparse, terminal reward. The episode is: field --A0--> first hospital h1
+# --A1--> final hospital h2 (h2 == h1 when the patient stays). No reward is paid
+# on the first leg; the probability of an excellent 90-day outcome (mRS 0-1) is
+# paid once, on the in-hospital decision, from the needle and puncture times
+# that the completed pathway implies.
+#
+# Previously the field-to-hospital step was also scored with a full pathway
+# outcome (assuming transfer to the nearest EVT center), and the planner summed
+# that with the in-hospital step's outcome. The planner's objective was then the
+# sum of two probabilities while the reported reward was one of them, so the
+# policy could pick a first destination whose reported reward was below a
+# comparator's. With the terminal reward the planner's objective and the
+# reported value coincide: see `action_value`.
+#
+# Outcome curves: Holodinsky JK, Williamson TS, Demchuk AM, et al. Modeling Stroke
+# Patient Transport for All Patients With Suspected Large-Vessel Occlusion.
 
-# Reward function: returns probability of good outcome for a patient state transition.
-# CITATION: Holodinsky JK, Williamson TS, Demchuk AM, et al. Modeling Stroke Patient 
-# Transport for All Patients With Suspected Large-Vessel Occlusion
-function POMDPs.reward(m::StrokeMDP, s::PatientState, a::Action, sp::PatientState)
+"""
+    pathway_times(m, s, sp) -> (t_needle, t_puncture)
 
-    csc_unreachable = false
-    psc_unreachable = false
-
-    # Calculate t_onset_needle and t_onset_puncture as in your original logic
-    if sp.loc.type == CSC
-        if s.loc.type == FIELD
-            # Direct arrival at an EVT-capable centre.
-            t_onset_needle   = sp.t_onset + DTN
-            t_onset_puncture = sp.t_onset + DTP_DIRECT
-        else
-            # Transferred in. Thrombolysis was given at the sending hospital if it
-            # was thrombolysis-capable; a transferred patient is pre-imaged, so the
-            # shorter transfer-in door-to-puncture applies.
-            t_onset_needle   = s.loc.type == NSC ? sp.t_onset + DTN : s.t_onset + DTN
-            t_onset_puncture = sp.t_onset + DTP_TRANSFER
-        end
-    elseif sp.loc.type == PSC
-        # Alteplase is given at the PSC itself, so needle time does not depend on
-        # whether an onward CSC transfer exists. (Previously set only inside the
-        # `else` below, leaving it undefined and crashing reward() for PSCs with
-        # no CSC within the travel-time cutoff, e.g. Sonoma County.)
-        t_onset_needle = sp.t_onset + DTN
-        nearest_CSC = find_nearest_CSC(m, sp.loc)
-        if nearest_CSC === nothing
-            csc_unreachable = true
-        else
-            time_to_CSC = cached_travel_time(m, sp.loc, nearest_CSC)
-            t_onset_puncture = sp.t_onset + DIDO + time_to_CSC + DTP_TRANSFER
-        end
-    elseif sp.loc.type == NSC || sp.loc.type == FIELD
-        # find nearest CSC; calculate time to CSC
-        nearest_CSC = find_nearest_CSC(m, sp.loc)
-        if nearest_CSC === nothing
-            csc_unreachable = true
-        else
-            time_to_CSC = cached_travel_time(m, sp.loc, nearest_CSC)
-            t_onset_puncture = sp.t_onset + DIDO + time_to_CSC + DTP_TRANSFER
-        end
-        # No thrombolysis on site at a non-stroke-center hospital: transfer to the
-        # nearest thrombolysis-capable centre for the needle as well.
-        nearest_PSC_or_CSC = find_nearest_PSC_or_CSC(m, sp.loc)
-        if nearest_PSC_or_CSC === nothing
-            psc_unreachable = true
-        else
-            time_to_PSC_or_CSC = cached_travel_time(m, sp.loc, nearest_PSC_or_CSC)
-            t_onset_needle = sp.t_onset + DIDO + time_to_PSC_or_CSC + DTN
-        end
+Onset-to-needle and onset-to-puncture times implied by the completed pathway
+(first hospital `s.loc` reached at `s.t_onset`, final hospital `sp.loc` reached
+at `sp.t_onset`). NaN where that treatment is not available on the pathway.
+"""
+function pathway_times(m::StrokeMDP, s::PatientState, sp::PatientState)
+    h1, h2  = s.loc, sp.loc
+    stayed  = h1.latlon == h2.latlon
+    t_needle   = NaN
+    t_puncture = NaN
+    if h1.type == PSC || h1.type == CSC
+        t_needle = s.t_onset + DTN
+    elseif h2.type == PSC || h2.type == CSC
+        t_needle = sp.t_onset + DTN
     end
+    if h2.type == CSC
+        t_puncture = stayed ? s.t_onset + DTP_DIRECT : sp.t_onset + DTP_TRANSFER
+    end
+    return t_needle, t_puncture
+end
+
+"""
+    pathway_outcome(m, s, sp) -> probability of excellent outcome
+
+Outcome of the completed care pathway: first hospital `s.loc` reached at clock
+`s.t_onset`, final hospital `sp.loc` reached at clock `sp.t_onset` (equal to `s`
+when the patient stays). Conditions on `s.stroke_type` when it is known and
+marginalizes over the prior otherwise.
+"""
+function pathway_outcome(m::StrokeMDP, s::PatientState, sp::PatientState)
+    t_needle, t_puncture = pathway_times(m, s, sp)
+    alteplase_possible = !isnan(t_needle)
+    evt_possible       = !isnan(t_puncture)
+
+    prob_EVT = if !evt_possible
+        0.0
+    elseif t_puncture < 270
+        0.3394 + 0.00000004 * t_puncture^2 - 0.0002 * t_puncture
+    else
+        0.129
+    end
+    prob_alteplase = if alteplase_possible && t_needle < 270
+        0.2359 + 0.0000002 * t_needle^2 - 0.0004 * t_needle
+    else
+        0.1328   # untreated LVO floor
+    end
+    p_LVO  = prob_alteplase + (1 - prob_alteplase) * prob_EVT
+    p_nLVO = if alteplase_possible && t_needle < 270
+        0.6343 - 0.00000005 * t_needle^2 - 0.0005 * t_needle
+    else
+        0.4622   # untreated nLVO floor
+    end
+    p_ICH   = 0.24   # Holodinsky 2018, Section E (time-invariant)
+    p_mimic = 0.90
 
     if s.stroke_type_known == KNOWN
-        if s.stroke_type == LVO
-
-            # If CSC unreachable, EVT is not possible
-            if csc_unreachable == false
-                if t_onset_puncture < 270
-                    prob_EVT = 0.3394 + 0.00000004(t_onset_puncture)^2 - 0.0002(t_onset_puncture)
-                else
-                    prob_EVT = 0.129
-                end
-            else
-                prob_EVT = 0
-            end
-
-            # If PSC and CSC unreachable, alteplase is not possible
-            if psc_unreachable == false || csc_unreachable == false
-                if t_onset_needle < 270
-                    prob_alteplase = 0.2359 + 0.0000002(t_onset_needle)^2 - 0.0004(t_onset_needle)
-                else
-                    prob_alteplase = 0.1328
-                end
-
-            else
-                # Minimum probability good outcoome for no treatment for LVO 
-                prob_alteplase = 0.1328
-            end
-
-            p_good_outcome = prob_alteplase + ((1 - prob_alteplase) * prob_EVT)
-
-        elseif s.stroke_type == NLVO
-            # If PSC and CSC unreachable, alteplase is not possible
-            if psc_unreachable == false || csc_unreachable == false
-                if t_onset_needle < 270
-                    p_good_outcome = 0.6343 - 0.00000005(t_onset_needle)^2 - 0.0005(t_onset_needle)
-                else
-                    p_good_outcome = 0.4622
-                end
-            else 
-                # Minimum probability good outcome for no treatment for nLVO
-                p_good_outcome = 0.4622
-            end
-
-        elseif s.stroke_type == HEMORRHAGIC
-            p_good_outcome = 0.24
-        elseif s.stroke_type == MIMIC
-            p_good_outcome = 0.90
-        end
-    else
-
-        # If stroke type is unknown, we assume weighted probabilities
-
-        # Calculate p_good_outcome_LVO
-        if csc_unreachable == false
-            if t_onset_puncture < 270
-                prob_EVT = 0.3394 + 0.00000004(t_onset_puncture)^2 - 0.0002(t_onset_puncture)
-            else
-                prob_EVT = 0.129
-            end
-        else
-            prob_EVT = 0
-        end
-
-        if psc_unreachable == false || csc_unreachable == false
-            if t_onset_needle < 270
-                prob_alteplase = 0.2359 + 0.0000002(t_onset_needle)^2 - 0.0004(t_onset_needle)
-            else
-                prob_alteplase = 0.1328
-            end
-        else
-            prob_alteplase = 0.1328
-        end
-
-        p_good_outcome_LVO = prob_alteplase + ((1 - prob_alteplase) * prob_EVT)
-
-
-        # Calculate p_good_outcome_nLVO
-        if psc_unreachable == false || csc_unreachable == false
-            if t_onset_needle < 270
-                p_good_outcome_nLVO = 0.6343 - 0.00000005(t_onset_needle)^2 - 0.0005(t_onset_needle)
-            else
-                p_good_outcome_nLVO = 0.4622
-            end
-        else
-            # Minimum probability good outcome for no treatment for nLVO
-            p_good_outcome_nLVO = 0.4622
-        end
-
-        # Calculate p_good_outcome_hemorragic
-        p_good_outcome_hemorrhagic = 0.24  # Holodinsky 2018, Section E (time-invariant)
-
-        # Calculate p_good_outcome_mimic
-        p_good_outcome_mimic = 0.90
-
-        # Weighted average
-        # Weighted average over the stroke-type prior (Holodinsky 2018, Section B).
-        # All four `+` operators on the same line via trailing-operator continuation.
-        p_good_outcome = m.p_LVO         * p_good_outcome_LVO +
-                         m.p_nLVO        * p_good_outcome_nLVO +
-                         m.p_Hemorrhagic * p_good_outcome_hemorrhagic +
-                         m.p_Mimic       * p_good_outcome_mimic
+        s.stroke_type == LVO         && return p_LVO
+        s.stroke_type == NLVO        && return p_nLVO
+        s.stroke_type == HEMORRHAGIC && return p_ICH
+        return p_mimic
     end
-    return p_good_outcome
+    # Stroke type unknown: weighted average over the prior (Holodinsky 2018, Section B).
+    return m.p_LVO * p_LVO + m.p_nLVO * p_nLVO + m.p_Hemorrhagic * p_ICH + m.p_Mimic * p_mimic
+end
+
+# Per-step MDP reward: zero on the first leg, the pathway outcome on the
+# in-hospital (stay or transfer) step.
+function POMDPs.reward(m::StrokeMDP, s::PatientState, a::Action, sp::PatientState)
+    s.loc.type == FIELD && return 0.0
+    return pathway_outcome(m, s, sp)
 end
 
 ###### =========================================================================
 ######  POLICY SEARCH (FORWARD SEARCH & BEST ACTION)
 ###### =========================================================================
 
-# Recursive forward search to estimate the maximum expected reward over a given horizon (depth).
+# Recursive forward search (expectimax) over the two-step episode.
 #
 # Information model
 # -----------------
-# Before any routing, the patient's stroke type is unknown to the EMS team
-# (s.stroke_type_known == UNKNOWN). Any non-STAY action delivers the patient to a
-# hospital, where CT/CTA imaging reveals the diagnosis — so after the transition
-# sp.stroke_type_known == KNOWN.
+# In the field the stroke type is unknown to the EMS team
+# (s.stroke_type_known == UNKNOWN). Any routing action delivers the patient to a
+# hospital, where imaging reveals the type, so after the transition
+# sp.stroke_type_known == KNOWN. The planner respects this: when choosing the
+# field action it averages the post-arrival value over the population prior,
+# and after arrival it conditions on the revealed type.
 #
-# The planner must respect this information structure: at the moment of choosing
-# a field action, it does not yet know which type imaging will reveal, so it
-# averages the post-arrival value over the population prior on stroke types.
-# After arrival (s.stroke_type_known == KNOWN), the planner conditions on the
-# revealed type.
+# The episode ends after the in-hospital decision, so from a hospital state the
+# search looks exactly one step ahead whatever depth is requested.
 function forward_search(m::StrokeMDP, s::PatientState, depth::Int)
-    if depth == 0
-        return 0.0  # Base case: no future reward
-    end
+    depth == 0 && return 0.0
+    s.loc.type != FIELD && (depth = 1)
 
-    types_and_probs = (
-        (LVO,         m.p_LVO),
-        (NLVO,        m.p_nLVO),
-        (HEMORRHAGIC, m.p_Hemorrhagic),
-        (MIMIC,       m.p_Mimic),
-    )
-
+    # Pure expected outcome of the best continuation. Tie-breaking is applied
+    # only where an action is chosen (best_action, best_followup), never inside
+    # the value, so a second-step tie rule cannot leak into the first-step comparison.
     best_value = -Inf
-    for a in actions(m, s)
-        a = string_to_enum(a)
-        sp_wrapper = transition(m, s, a)  # Get next state (deterministic)
-        sp = rand(sp_wrapper)
-        r = reward(m, s, a, sp)
-
-        # UNKNOWN -> KNOWN transition = imaging reveals the type. Marginalize.
-        future = if s.stroke_type_known == UNKNOWN && sp.stroke_type_known == KNOWN
-            sum(
-                p * forward_search(m, PatientState(sp.loc, sp.t_onset, KNOWN, t), depth - 1)
-                for (t, p) in types_and_probs
-            )
-        else
-            forward_search(m, sp, depth - 1)
-        end
-
-        value = r + discount(m) * future - TRAVEL_TIEBREAK * (sp.t_onset - s.t_onset)
-        best_value = max(best_value, value)
+    for a_str in actions(m, s)
+        a = string_to_enum(a_str)
+        sp = rand(transition(m, s, a))
+        best_value = max(best_value, action_value(m, s, a, sp; depth = depth))
     end
-
     return best_value
 end
 
-# Returns the action that yields the highest expected reward over the planning horizon (depth).
-# Uses the same marginalize-on-UNKNOWN-to-KNOWN logic as `forward_search` so the action
-# choice respects the prehospital information state.
+types_and_probs(m::StrokeMDP) = ((LVO, m.p_LVO), (NLVO, m.p_nLVO),
+                             (HEMORRHAGIC, m.p_Hemorrhagic), (MIMIC, m.p_Mimic))
+
+"""
+    action_value(m, s, a, sp = next state; depth = 2)
+
+Value the planner assigns to taking action `a` from state `s`: the per-step
+reward plus the expected value of the best continuation. From the field with
+the type unknown this is the expected probability of an excellent outcome under
+the best subtype-specific follow-up, marginalized over the prior; with the type
+known it is the outcome under the best follow-up for that type. This is the
+quantity every policy is scored on, so the MDP policy, which maximizes it, is
+never below a comparator on it. `sp` may be supplied to override the next state
+(used by the travel-time perturbation analyses).
+"""
+function action_value(m::StrokeMDP, s::PatientState, a::Action,
+                      sp::Union{PatientState, Nothing} = nothing; depth::Int = 2)
+    sp === nothing && (sp = rand(transition(m, s, a)))
+    r = reward(m, s, a, sp)
+    future = if s.stroke_type_known == UNKNOWN && sp.stroke_type_known == KNOWN
+        # Imaging reveals the type on arrival: marginalize over the prior.
+        sum(p * forward_search(m, PatientState(sp.loc, sp.t_onset, KNOWN, t), depth - 1)
+            for (t, p) in types_and_probs(m))
+    else
+        forward_search(m, sp, depth - 1)
+    end
+    return r + discount(m) * future
+end
+
+# Returns the action with the highest planner value over the horizon `depth`
+# (ties broken toward the shorter first leg).
+# Ties in expected outcome arise only when no pathway reaches treatment inside
+# the outcome window (every destination scores the same floor). They are broken
+# toward the more capable hospital (EVT-capable > thrombolysis-capable > other),
+# then toward the shorter first leg.
+const VALUE_TOL = 1e-9
+tier_rank(t::LocType) = t == CSC ? 2 : t == PSC ? 1 : 0
 function best_action(m::StrokeMDP, s::PatientState, depth::Int)
     best_act = nothing
-    best_value = -Inf
-
-    types_and_probs = (
-        (LVO,         m.p_LVO),
-        (NLVO,        m.p_nLVO),
-        (HEMORRHAGIC, m.p_Hemorrhagic),
-        (MIMIC,       m.p_Mimic),
-    )
-
+    best_key = (-Inf, -1, -Inf)
     for a_str in actions(m, s)
         a = string_to_enum(a_str)
-        sp_wrapper = transition(m, s, a)
-        sp = rand(sp_wrapper)
-        r = reward(m, s, a, sp)
-
-        future = if s.stroke_type_known == UNKNOWN && sp.stroke_type_known == KNOWN
-            sum(
-                p * forward_search(m, PatientState(sp.loc, sp.t_onset, KNOWN, t), depth - 1)
-                for (t, p) in types_and_probs
-            )
-        else
-            forward_search(m, sp, depth - 1)
-        end
-
-        value = r + discount(m) * future - TRAVEL_TIEBREAK * (sp.t_onset - s.t_onset)
-        if value > best_value
-            best_value = value
+        sp = rand(transition(m, s, a))
+        value = action_value(m, s, a, sp; depth = depth)
+        key = (value, tier_rank(sp.loc.type), -(sp.t_onset - s.t_onset))
+        if best_act === nothing || value > best_key[1] + VALUE_TOL ||
+           (abs(value - best_key[1]) <= VALUE_TOL && key[2:3] > best_key[2:3])
+            best_key = key
             best_act = a
         end
     end
-
     return best_act
+end
+
+"""
+    best_followup(m, s_hosp) -> (a1, sp2)
+
+The in-hospital decision (stay or transfer) that maximizes the terminal reward
+from hospital state `s_hosp` (type known), and the resulting terminal state.
+"""
+function best_followup(m::StrokeMDP, s::PatientState)
+    best = nothing; best_sp = nothing; best_v = -Inf
+    for a_str in actions(m, s)
+        a = string_to_enum(a_str)
+        sp = rand(transition(m, s, a))
+        v = reward(m, s, a, sp) - TRAVEL_TIEBREAK * (sp.t_onset - s.t_onset)
+        v > best_v && (best_v = v; best = a; best_sp = sp)
+    end
+    return best, best_sp
+end
+
+"""
+    tier_values(m, s) -> Dict{LocType,Float64}
+
+Planning value (`action_value`) of the best reachable hospital in each
+capability tier from field state `s`. When the top two tiers are equal the
+destination tier does not affect expected outcome (no pathway reaches treatment
+inside the window), and the patient is indifferent for training purposes.
+"""
+function tier_values(m::StrokeMDP, s::PatientState)
+    best = Dict{LocType, Float64}()
+    for a_str in actions(m, s)
+        a = string_to_enum(a_str)
+        sp = rand(transition(m, s, a))
+        v = action_value(m, s, a, sp)
+        best[sp.loc.type] = max(get(best, sp.loc.type, -Inf), v)
+    end
+    return best
 end
 
 ###### =========================================================================

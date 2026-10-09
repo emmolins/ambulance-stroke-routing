@@ -56,7 +56,7 @@ include("../src/CA_STPMDP_ORS.jl")
 # Configuration
 # ============================================================================
 SEED         = 2025
-N_TEST       = 200                       # patients per sweep run (kept moderate; ORS-bound)
+N_TEST       = parse(Int, get(ENV, "N_TEST", "500"))   # held-out patients per sweep run
 DEPTHS       = [1, 2, 3, 4, 5, 6, 8, 10, -1]   # -1 = unconstrained (set to nothing in DT)
 OUTPUT_DIR   = "decision_tree_output"
 TRAIN_CSV    = joinpath(OUTPUT_DIR, "training_data_detailed.csv")
@@ -166,7 +166,7 @@ function reward_of_route(s::PatientState, dest::Union{Location, Nothing})
     action_str = "ROUTE_" * dest.name
     a = string_to_enum(action_str)
     sp = rand(transition(mdp, s, a))
-    return reward(mdp, s, a, sp), action_str
+    return action_value(mdp, s, a, sp), action_str
 end
 
 # ============================================================================
@@ -207,7 +207,7 @@ while collected < N_TEST && idx < length(all_points)
     mdp_action === nothing && continue
     mdp_action_str = enum_to_string(mdp_action)
     sp_mdp = rand(transition(mdp, s, mdp_action))
-    mdp_reward = reward(mdp, s, mdp_action, sp_mdp)
+    mdp_reward = action_value(mdp, s, mdp_action, sp_mdp)
 
     sid = collected + 1
 
@@ -235,7 +235,7 @@ while collected < N_TEST && idx < length(all_points)
         a = string_to_enum(action_str_or_nothing)
         sp = rand(transition(mdp, s, a))
         push!(per_patient, (sid, name, action_str_or_nothing,
-                             reward(mdp, s, a, sp), mdp_reward))
+                             action_value(mdp, s, a, sp), mdp_reward))
     end
     policy_eval("Nearest",     current_practice_action(mdp, s))
     policy_eval("Heuristic_1", heuristic_1_action(mdp, s))
